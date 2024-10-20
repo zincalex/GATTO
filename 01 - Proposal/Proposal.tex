@@ -72,17 +72,7 @@ University of Padova \\
 \thispagestyle{plain}
 \pagestyle{plain}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{abstract}
-This paper explores the parallelization of sorting algorithms, focusing on adapting the Merge Sort algorithm for distributed computing environments. It presents a parallel implementation based on the divide-and-conquer paradigm, utilizing a hypercube network topology. The study investigates the scalability and efficiency of this parallel sorting approach across various dataset sizes and numbers of processors. Performance analysis includes measurements of execution time, speedup, and the ratio of computation to communication time. Results demonstrate the effectiveness of the parallelization strategy in significantly reducing sorting time for large datasets while maintaining a high computing-to-communication ratio. 
-\end{abstract}
-
-\begin{keywords}
-Merge Sort, Parallelization, MPI, Hypercube, Bitonic Sort
-\end{keywords}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{INTRODUCTION}
+\section{MOTIVATION}
 
 In the field of computer science, sorting algorithms are fundamental tools used to organize data. Whether the task is to arrange numbers, words, or any other data types, sorting is a critical operation that enhances the efficiency of subsequent data processing and analysis. The importance of sorting is evident in various applications, from database management to search optimization and even in everyday computational tasks.\par
 
@@ -95,7 +85,7 @@ To address these limitations, parallelization offers a powerful solution by dist
 In this paper, there will be an exploration of how to distribute the power of the Merge Sort algorithm across a set of processors, focusing on parallelization techniques. The investigation will delve into the scalability of such an implementation, examining how effectively the algorithm can handle increasing amounts of data and processing power. Additionally, the communication cost among processors will be analyzed, as it plays a crucial role in determining the overall efficiency and practicality of parallelized sorting in real-world applications.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{SORTING ALGORITHM}
+\section{METHODS}
 
 \subsection{Merge Sort Algorithm}
 Merge Sort\cite{von1956new} is a divide-and-conquer sorting algorithm that efficiently sorts data by recursively dividing a dataset into smaller subarrays, sorting them, and then merging the sorted subarrays back together. Developed by John von Neumann in 1945, Merge Sort is well-regarded for its stable sorting behavior and predictable time complexity of $O(n \log n)$, where $n$ is the dataset size.
@@ -253,7 +243,7 @@ This approach minimizes inter-processor communication while maximizing paralleli
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{PROJECT SETUP}
+\section{Intended experiments}
 The sequential MergeSort algorithm is implemented in C, while the BitonicSort algorithm is executed using MPI. The code and all implementation details are available on \textbf{\href{https://github.com/francesco-biscaccia-carrara/BitonicSort}{GitHub}}. \par
 For simplicity, the algorithm is tested on datasets whose sizes are powers of two, with the number of processors also being a power of two. This simplification can be mitigated using padding strategies, which become less significant as the dataset size increases. Thus, this approach remains relevant and effective for larger datasets.
 The tests include 10 measurements of both computation and communication time for each input size, with the datasets generated randomly for each measurement. Below are the input sizes used:
@@ -286,23 +276,6 @@ The objective of these tests is to verify that the parallelization approach impr
 To evaluate this, the sequential MergeSort was run for each input size 10 times, and the average computation time for each size is referred to as $T_{Seq}$.
 Subsequently, the BitonicSort algorithm was executed on 2 to 32 processors, with the number of processors being powers of 2. For each configuration, the average computation time was measured similarly to the sequential tests, and the speedup$$S(P) = \frac{T_{Seq}}{T(P)}$$ was analyzed, where $T(P)$ is the execution time of the algorithm on $P$ processors.
 Finally, the Computing-over-Communication Ratio (CCR) was evaluated, defined as $$CCR(P) = \frac{T_{Calc}(P)}{T_{Tot}(P)}$$ where $T_{Calc}(P)$ is the time devoted to computation, and $T_{Tot}(P)$ is the total execution time of the algorithm.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{RESULT AND ANALYSIS}
-\subsection{Performance Plots}
-The data collected from the CAPRI infrastructure are available on the \textbf{\href{https://github.com/francesco-biscaccia-carrara/BitonicSort}{GitHub}} repository. The plot scripts were created using Matplotlib in Python. From the raw data, the following plots can be extracted:
-
-\subsection{Data Analysis}
-First of all, there is a significant reduction in execution time (see Figure~\ref{fig:ETimes}), showing a linear relationship between the number of processors and the time saved. As observed in Figure~\ref{fig:S}, the speedup factor $S(P)$ is consistently maintained, even as the input size increases. This consistency indicates that the algorithm effectively divides and manages the workload, likely because the sequential algorithm operates on problems that decrease in size by a factor of 2 up to 32.\par
-Regarding the Computing-over-Communication Ratio $CCR(P)$, it is noteworthy that even with a large number of processors (such as 16 or 32), the ratio remains close to 1, never dropping below 0.98. This demonstrates that the majority of the execution time is spent on computation rather than communication between processors, likely because the data exchanged between processors becomes smaller as the number of processors increases.\par
-As expected, the linear interpolation of the average speedup $S(P)$ for each $P$ (see Figure~\ref{fig:AVG_S}) confirms a linear trend, suggesting that the BitonicSort algorithm scales well.
-
-\section{CONCLUSIONS AND FUTURE WORKS}
-To sum up, the results from the tests performed on the CAPRI infrastructure demonstrate that the BitonicSort implementation is a highly effective solution for handling massive datasets. However, there are potential areas for improvement:
-\begin{itemize}
-    \item Executing tests on larger datasets with more processors could further confirm the hypotheses about scalability and execution time reduction.
-    \item Reducing the data exchange between processors: currently, the entire storage of a processor node is sent to another one. This could be optimized with some technical improvements to minimize data transfer.
-\end{itemize}
 
 \addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
                                   % on the last page of the document manually. It shortens

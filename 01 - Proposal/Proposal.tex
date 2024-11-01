@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[article,12pt,conference]{ieeeconf} %Github
+\documentclass[12pt,conference]{ieeeconf} %Github
 %\documentclass[letterpaper, 12 pt, onecolumn]{ieeeconf} %Prof. Parallel
 
 % Comment this line out
@@ -58,7 +58,7 @@
 
 \pagestyle{plain} 
 
-\title{\LARGE TITLE OF THE PAPER \\
+\title{GATto: topological information to improve node classification via GAT\\
 \large Proposal for Learning from Network's project \\}
 
 \author{Francesco Biscaccia Carrara, Alessandro Viespoli, Riccardo Modolo % <-this % stops a space 
@@ -74,195 +74,43 @@ University of Padova \\
 
 \section{MOTIVATION} 
 
-In the field of computer science, sorting algorithms are fundamental tools used to organize data. Whether the task is to arrange numbers, words, or any other data types, sorting is a critical operation that enhances the efficiency of subsequent data processing and analysis. The importance of sorting is evident in various applications, from database management to search optimization and even in everyday computational tasks.\par
+Node classification is an important topic of graph analysis for find useful informations.\par
+Quality of classification is an hot topic, since better classification present an advantage on extract conclusion or correlation in a graph.\par
+Our intention is try to improve node classification using some precomputed features obtained via graph embedding and clustering.
+To evaluate our hypothesis we use social graph with ground truth.
+This type of graph help us to examine any difference between simple GAT and our GATto (GAT with topological features on each node) and check which approximate better the ground truth. \par
 
-The choice of a sorting algorithm is often determined by the size and nature of the dataset, as well as the performance requirements of the system. For example, simple algorithms like Bubble Sort and Insertion Sort are easy to implement and understand, making them suitable for small datasets or educational purposes. On the other hand, other algorithms such as Quick Sort, Merge Sort, and Heap Sort are preferred in professional applications due to their superior performance on large datasets.\par
-
-As data continues to grow exponentially in today's digital world, the role of sorting algorithms remains as vital as ever, serving as the backbone of effective data organization and retrieval. However, even a robust sequential algorithm like Merge Sort may not be as effective in real-life scenarios: in real-time computation, the timespan is constrained to be very small, making computation time a critical factor.\par
-
-To address these limitations, parallelization offers a powerful solution by distributing the computational workload across multiple processors. By leveraging parallel computing, the Merge Sort algorithm can be adapted to handle larger datasets more efficiently and within tighter time constraints. This approach not only accelerates the sorting process but also optimizes resource utilization, which is increasingly important in environments where computational power is abundant but time is limited.\par
-
-In this paper, there will be an exploration of how to distribute the power of the Merge Sort algorithm across a set of processors, focusing on parallelization techniques. The investigation will delve into the scalability of such an implementation, examining how effectively the algorithm can handle increasing amounts of data and processing power. Additionally, the communication cost among processors will be analyzed, as it plays a crucial role in determining the overall efficiency and practicality of parallelized sorting in real-world applications.
+Time permitting and iif the method seem to work well, we put more effort in parllelization and scaling the framework to use it in a distributed environment.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{METHODS}
 
-\subsection{Merge Sort Algorithm}
-Merge Sort\cite{von1956new} is a divide-and-conquer sorting algorithm that efficiently sorts data by recursively dividing a dataset into smaller subarrays, sorting them, and then merging the sorted subarrays back together. Developed by John von Neumann in 1945, Merge Sort is well-regarded for its stable sorting behavior and predictable time complexity of $O(n \log n)$, where $n$ is the dataset size.
+We divide our workload in two main components
+\begin{itemize}
+    \item{\textbf{Precomputation module}: the part of code used to precompute additional features}
+    \item{\textbf{GAT module}: the effective computation of node classification using a Graph Attention Network }
+\end{itemize}
 
-\begin{algorithm}[h]
-\vspace{0.5em}
-\caption{Merge Sort}
-\KwIn{Array $A$ with indices $start$ to $end$}
-\KwOut{Sorted array $A$}
-\vspace{0.25em}
-\SetAlgoLined
-\SetKwFunction{FMain}{MergeSort}
-\SetKwProg{Fn}{Function}{:}{}
-
-\SetKwFunction{FMerge}{Merge}
-\Fn{\FMerge{$A$, $start$, $mid$, $end$}}{
-    $n_1 \gets mid - start + 1$\;
-    $n_2 \gets end - mid$\;
-    
-    $A_L[0 \dots n_1 -1]$, $A_R[0 \dots n_2 -1]$\
-    
-    \For{$i \gets 0$ \KwTo $n_1-1$}{
-        $A_L[i] \gets A_L[start + i]$\;
-    }
-    \For{$j \gets 0$ \KwTo $n_2-1$}{
-        $A_R[j] \gets A_R[mid + j+1]$\;
-    }
-    $i \gets 0$, $j \gets 0$\;
-    $k \gets start$ \;
-    \While{$i < n_1$ \textbf{AND} $j <n_2 $ }{
-   
-        \If{$A_L[i] \leq  A_R[j]$}{
-            $A[k] \gets A_L[i]$\;
-            $i \gets i+1$\;
-        }
-        \Else{
-            $A[k] \gets A_R[i]$\;
-           $j \gets j+1$\;
-        }
-         $k\gets k+1$\;
-    }
-}
-\vspace{0.5em}
-\Fn{\FMain{$A$, $start$, $end$}}{
-    \If{$start < end$}{
-        $mid \gets \lfloor \frac{start + end}{2} \rfloor$\;
-        \FMain{$A$, $start$, $mid$}\;
-        \FMain{$A$, $mid + 1$, $end$}\;
-        \FMerge{$A$, $start$, $mid$, $end$}\;
-    }
-}
-\end{algorithm}
-As show in the pseudocode, the algorithm operates by splitting the input array into two halves, repeatedly doing so until each subarray contains a single element. It then merges these subarrays in a way that results in a sorted array. The merging process is the key to Merge Sort's efficiency, as it combines elements in linear time, leading to its overall $O(n\log n)$ complexity.\par
-One of the strengths of Merge Sort is its performance consistency, as it maintains the same complexity in the worst, best, and average cases. However, Merge Sort requires additional space proportional to the size of the input data, which can be a drawback in environments with limited memory.
-
-\subsection{Parallelization of Merge Sort Algorithm}
-Due to its nature, there are multiple ways to parallelize the Merge Sort algorithm. One straightforward approach is to leverage the hypercube architecture, which provides efficient parallel processing capabilities. This chapter explores a naive solution based on the Bitonic Sorting Paradigm, implemented on a hypercube network.
-
-\subsubsection{Hypercube Architecture}
-A hypercube\cite{boman1990hypercube} is a $d$-dimensional structure with $2^d$ nodes, where each node is connected to $d$ other nodes. The diameter of the hypercube is $\log_2{P}$, where $P$ is the number of processors.\par
-
-\subsubsection{Bitonic Sorting Paradigm}
-In the Bitonic Sorting Paradigm\cite{batcher1968sorting} on a hypercube, data is exchanged among nodes based on edges connecting nodes that differ by specific bit positions. The process proceeds as follows:
-\begin{enumerate}
-    \item Initially, data is exchanged along edges $E_0$, which connect nodes differing by the first bit.
-    \item In the subsequent step, data is exchanged along edges $E_1$ and $E_0$.
-    \item This is followed by exchanges over edges $E_2, E_1$ and $E_0$, and so on, continuing up to $E_{d-1}$.
-    \item Finally, exchanges are performed over all edges $E_{d-1}, E_{d-2}, \ldots, E_0$, incorporating all dimensions.
-\end{enumerate}
-
-Each step progressively sorts the data by higher dimensions, leveraging the hypercube's connectivity to distribute the sorting workload efficiently across multiple processors. This approach ensures that the data becomes sorted in parallel, taking full advantage of the hypercube's architecture.\par
-
-\begin{figure}[thpb]
-\centering
-\begin{tikzpicture}[auto,node distance = 0cm and 0cm, thick]
-    % Nodes
-    \node(E0) {$E_0$};
-    \node[below=of E0] (E1E0) {$E_1, E_0$};
-    \node[right=of E0,xshift=1.25cm] (start){};
-    \node[below=of E1E0] (E2E1E0) {$E_2, E_1, E_0$};
-    \node[below=of E2E1E0] (E3E2E1E0) {$\ldots$};
-    \node[below=of E3E2E1E0] (Ed1Ed2E0) {$E_{d-1}, E_{d-2}, \ldots, E_0$};
-    \node[right=of Ed1Ed2E0,xshift=0cm] (end){};
-
-    \draw[->] (start) -- (end);
-\end{tikzpicture}
-\caption{Bitonic Sorting Paradigm execution schema}
-\end{figure}
-
-\subsubsection{Bitonic Sorting Paradigm Implementation}
-Based on the Bitonic Sorting Paradigm, the implementation can be summarized as follows:
-\begin{enumerate}
-    \item Divide the dataset into $P$ equal parts, assigning one part to each processor.
-    \item Use the Merge Sort routine to sort each subset locally on its respective processor.
-    \item Employ the Bitonic Sorting Paradigm on a virtual hypercube with  $\log_2(P)$ dimensions.
-    During each stage:
-    \begin{itemize}
-        \item Merge sorted sequences from adjacent processors, where one processor merges sequences from the lower index and the other from the higher index.
-        \item Continue merging until each processor's sequence reaches the middle point. 
-    \end{itemize}
-\end{enumerate}
-
-\begin{figure}[thpb]
-      \centering
-      \begin{tikzpicture}
-    
-    % Draw the arrows
-    \draw[->] (0,2) -- (0,1.5) node[at start,above]{$x_1=(3,4,7,9)$};
-    \draw[thick] (-1,0.75) rectangle (1,1.25) node[at start, right, xshift=0.35cm,yshift=0.25cm]{$CPU_0$};
-    \draw[->] (4,2) -- (4,1.5) node[at start,above]{$x_2=(1,2,5,8)$};
-    \draw[thick] (3,0.75) rectangle (5,1.25) node[at start, right, xshift=0.35cm,yshift=0.25cm]{$CPU_1$};
-    \draw[->] (1.1,1.1) -- (2.9,1.1) node[midway, above,font=\small]{$x_1$};
-    \draw[->] (2.9,0.85) -- (1.1,0.85) node[midway, below,font=\small]{$x_2$};
-    \draw[->] (4,0.6) -- (4,-0.1) node[at end,below]{$(5,7,8,9)$};
-    \draw[->] (0,0.6) -- (0,-0.1) node[at end,below]{$(1,2,3,4)$};
-\end{tikzpicture}
-\caption{Bitonic Merging on 2 processors}
-\end{figure}
-This approach minimizes inter-processor communication while maximizing parallelism. It is worth noting that the sorting routine used in the initial phase can be tailored to the specific processor type, ensuring compatibility without disrupting the overall computational framework.
-\begin{algorithm}[h]
-\caption{Bitonic Sort}
-\KwIn{Array $A$, Processor Set $P$}
-\KwOut{Sorted array $A$}
-\vspace{0.25em}
-\SetAlgoLined
-\SetKwFunction{FBitSort}{BitonicSort}
-\SetKwFunction{FMergeL}{MergeLow}
-\SetKwFunction{FMergeH}{MergeHigh}
-\SetKwProg{Fn}{Function}{:}{}
-
-\Fn{\FBitSort{$A$, $P$}}{
-    \tcp{Scatter $A$ across $P$ processors}
-    $A_0, A_1, \dots, A_{P-1}$\;
-    
-    \tcp{Execute in parallel on each processor $p \in \{0,\dots,P-1\}$}
-    \FMain{$A_p$, $0$, $|A_p|- 1$}\;
-    
-    \For{$l \gets 0$ \KwTo $(\log_2{P})-1$}{
-        \For{$i \gets l$ \KwTo $0$ \KwSty{step} $-1$}{
-            $pal \gets \text{partner}(p, i, l)$\;
-            $A_r \gets \text{data\_from}(pal)$\; \tcp{Exchange data between $p$ and $pal$}
-            
-            \If{$p$ merges from low index}{
-                \FMergeL{$A_p$, $A_r$}\;
-            }
-            \Else{
-                \FMergeH{$A_p$, $A_r$}\;
-            }
-        }
-    }
-    \tcp{Gather $A_p$ from each processor $p$}
-    $A \gets A_0 \cup A_1 \cup \dots \cup A_{P-1}$\;
-}
-\end{algorithm}
+In the precomputation module we want to test different embedding library (node2vec or GraphWave) and different clustering parameters as features.\par
+In our expectation we use the majority work effort in build the Precomputation module and conduct tests, since we want to use and already implemented GAT library.
+We want also to be sure that our additional feature don't introduce any bias*** on the GAT network. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Intended experiments}
-The sequential MergeSort algorithm is implemented in C, while the BitonicSort algorithm is executed using MPI. The code and all implementation details are available on \textbf{\href{https://github.com/francesco-biscaccia-carrara/BitonicSort}{GitHub}}. \par
-For simplicity, the algorithm is tested on datasets whose sizes are powers of two, with the number of processors also being a power of two. This simplification can be mitigated using padding strategies, which become less significant as the dataset size increases. Thus, this approach remains relevant and effective for larger datasets.
-The tests include 10 measurements of both computation and communication time for each input size, with the datasets generated randomly for each measurement. Below are the input sizes used:
-\begin{center}
-\begin{tabular}{|c||c|}
- \hline
- \multicolumn{2}{|c|}{Instance Size} \\
- \hline
- Power of 2& Decimal\\
- \hline
- $2^{25}$ & $33554432$\\
- $2^{26}$ & $67108864$\\
- $2^{27}$ & $134217728$\\
- $2^{28}$ & $268435456$\\
- $2^{29}$ & $536870912$\\
- $2^{30}$ & $1073741824$\\
- \hline
-\end{tabular}
-\end{center}
+We want to implement the methods in Python for the advantage of using deep learning library like tensorflow.
+The code and all implementation details will be available on \textbf{GitHub}. \par
+
+The intentional experiments approximately work as follow:
+\begin{itemize}
+    \item train GAT with default node features
+    \item compute the classification error
+    \item compute graph embedding on the graph
+    \item compute clustering and add features to nodes
+    \item train GAT with additional features
+    \item compute the classification error
+\end{itemize}
+
 All tests were performed on the \textbf{\href{https://capri.dei.unipd.it}{CAPRI}} High-Performance Computing (HPC) system, owned by the University of Padova. CAPRI is designed to provide computational power for testing innovative algorithms across various research fields. It is equipped with the following hardware:
 \begin{itemize}
     \item 16 Intel(R) Xeon(R) Gold 6130 @ 2.10GHz CPUs
@@ -271,13 +119,8 @@ All tests were performed on the \textbf{\href{https://capri.dei.unipd.it}{CAPRI}
     \item 40 TB of disk space
 \end{itemize}
 
-The objective of these tests is to verify that the parallelization approach improves computing time while keeping communication time as a low percentage of the overall execution time. 
-\par
-To evaluate this, the sequential MergeSort was run for each input size 10 times, and the average computation time for each size is referred to as $T_{Seq}$.
-Subsequently, the BitonicSort algorithm was executed on 2 to 32 processors, with the number of processors being powers of 2. For each configuration, the average computation time was measured similarly to the sequential tests, and the speedup$$S(P) = \frac{T_{Seq}}{T(P)}$$ was analyzed, where $T(P)$ is the execution time of the algorithm on $P$ processors.
-Finally, the Computing-over-Communication Ratio (CCR) was evaluated, defined as $$CCR(P) = \frac{T_{Calc}(P)}{T_{Tot}(P)}$$ where $T_{Calc}(P)$ is the time devoted to computation, and $T_{Tot}(P)$ is the total execution time of the algorithm.
-
-\addtolength{\textheight}{-12cm}   % This command serves to balance the column lengths
+The objective of these tests is to observe if this precomputation provide any improvement on classification.\par
+%\addtolength{\textheight}{-5cm}   % This command serves to balance the column lengths
                                   % on the last page of the document manually. It shortens
                                   % the textheight of the last page by a suitable amount.
                                   % This command does not take effect until the next page

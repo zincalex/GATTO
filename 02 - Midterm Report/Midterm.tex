@@ -76,33 +76,39 @@ University of Padova \\
 \section{INTRODUCTION} 
 The scope of this document is to:
 \begin{itemize}
-    \item Clarify all points not properly explained in the proposal paper
-    \item Summarize all work done
-    \item Define the missing work 
-    \item Estimate time and effort to finish the project.
+    \item \textbf{Clarify all points} not properly explained in the proposal paper
+    \item Summarize all \textbf{work done}
+    \item Define the \textbf{missing work} 
+    \item Estimate \textbf{time to finish the project}.
 \end{itemize}
 
-TODO: inserire riassuntino di quello che scriviamo dopo
-
 \section{CLARIFICATION POINTS}
-One of the most important clarification point is about data: we didn't provide an extensive explanation, in the proposal paper, about how data are built and how we want to use them.
-The graphs we choose in SNAP$^\text{\cite{SNAP}}$ are undirected. Each node contain community as parameter. 
+One of the most important points of clarification concern the data: in the proposal paper, we did not provide an extensive explanation of how data are built and how we want to use them.
+The graphs chosen in SNAP$^\text{\cite{SNAP}}$ are undirected and contain communities, no other features are present in the files. 
+We want to use all communities as label, and a node can only belong to one community.
+For GAT tuning we want to compute the following feature for each node:
+\begin{itemize}
+    \item betweenness centrality
+    \item closeness centrality
+    \item clustering coefficient
+\end{itemize}
+
 
 \section{WORK DONE}
-We've already build the \textbf{precomputation module} (explained in the project proposal) 
-and the code to automate the testing phase inside cluster. We've decided the hyperparameters
-about node2vec.
+We have already built the \textbf{precomputation module} (explained in the project proposal) 
+and the code to automate the testing phase inside cluster.
 
 \section{WORK IN PROGRESS}
-We nedd to build the \textbf{GAT module} (Viespoli) and do the tests on \textbf{CAPRI}$^\text{\cite{CAPRI}}$.
-Also writing the paper (for obvious reason) is a missing step. 
+We nedd to build the \textbf{GAT module} and do the tests on \textbf{CAPRI}$^\text{\cite{CAPRI}}$. 
+We must also decide the hyperparameters in node2vec.
 
 \section{ESTIMATION}
-Since we need our collegue (Viespoli) to build the GAT, we estimate to finish the project on 7$^{\text{th}}$ January.
-With this estimation we have 8 days for eventual issue and refinements.
+In our estimation, we can finish the paper five or six days before the deadline. 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{\fill}
 \printbibliography
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % WHAT MIGHT BE ADDED IN THE NEXT UPDATE PROPOSAL 
 % --> list of analytical test to be conducted 

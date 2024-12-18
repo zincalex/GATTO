@@ -1,17 +1,30 @@
 import networkx as nx
 
 #region FilePaths
-FILENAME_EDGES_EMAIL_EU_CORE = "Data/email_eu_core/email-Eu-core.txt"
-FILENAME_LABELS_EMAIL_EU_CORE = "Data/email_eu_core/email-Eu-core-department-labels.txt"
-COMMUNITIES_NUM_EMAIL_EU_CORE = 42
+GRAPHS = {
+    "EMAIL_EU_CORE" : {
+        "graph_name":"email_eu_core",
+        "edges_file" : "Data/email_eu_core/email-Eu-core.txt",
+        "label_file" : "Data/email_eu_core/email-Eu-core-department-labels.txt",
+        "communities" : 42
+    },
 
-FILENAME_EDGES_WIKI_TOPCATS = "Data/wiki_topcats/wiki-topcats.txt"
-FILENAME_LABELS_WIKI_TOPCATS = "Data/wiki_topcats/wiki-topcats-categories.txt"
-COMMUNITIES_NUM_WIKI_TOPCATS = 17364
+    "WIKI_TOPCATS" : {
+        "graph_name":"wiki_topcats",
+        "edges_file" : "Data/wiki_topcats/wiki-topcats.txt",
+        "label_file" : "Data/wiki_topcats/wiki-topcats-categories-std.txt",
+        "label_file_no_std" : "Data/wiki_topcats/wiki-topcats-categories.txt",
+        "communities" : 17364
+    },
 
-FILENAME_EDGES_COM_AMAZON = "Data/com_amazon/com-amazon.ungraph.txt"
-FILENAME_LABELS_COM_AMAZON = "Data/com_amazon/com-amazon.all.dedup.cmty.txt"
-COMMUNITIES_NUM_COM_AMAZON = 75149
+    "COM_AMAZON" : {
+        "graph_name":"com_amazon",
+        "edges_file" : "Data/com_amazon/com-amazon.ungraph.txt",
+        "label_file" : "Data/com_amazon/com-amazon.all.dedup.cmty-std.txt",
+        "label_file_no_std" : "Data/com_amazon/com-amazon.all.dedup.cmty.txt",
+        "communities" : 75149
+    }
+}
 #endregion
 
 def build_data(edges_file: str, label_file: str):
@@ -106,3 +119,10 @@ def convert_wiki_topcats_to_standard(label_file: str, out_label_file : str):
         row += 1
     internal_label_file.close()
     internal_new_label_file.close()
+
+if __name__ == "__main__":
+    print("STARDARDIZING LABELS FILES")
+    convert_com_amazon_to_standard(GRAPHS["COM_AMAZON"]["label_file_no_std"],GRAPHS["COM_AMAZON"]["label_file"])
+    print("COM_AMAZON file processed")
+    convert_wiki_topcats_to_standard(GRAPHS["WIKI_TOPCATS"]["label_file_no_std"],GRAPHS["WIKI_TOPCATS"]["label_file"])
+    print("WIKI_TOPCATS file processed")

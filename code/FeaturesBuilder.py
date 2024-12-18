@@ -7,28 +7,54 @@ import pickle
 
 GRAPH_DUMP_FOLDER = "graph_dump/"
 
-def saveGraph(graph: nx.Graph,graph_dump_filename : str):
-    pickle.dump(graph, open(GRAPH_DUMP_FOLDER+graph_dump_filename+".pickle", "wb"))
+# 
+# 
+# 
+# 
+# RUN GRAPHBUILDER BEFORE FEATUREBUILDER
+# 
+# 
+# 
+# 
+# 
+# 
+# 
 
-# load graph 
-# G = pickle.load(open('filename.pickle', 'rb'))
+# How to load graph from pickle? --> G = pickle.load(open('filename.pickle', 'rb'))
 
-def main(graph: str, num_worker:int):
-    emailGraph = gBuild.build_data(gBuild.FILENAME_EDGES_EMAIL_EU_CORE, gBuild.FILENAME_LABELS_EMAIL_EU_CORE)
-    emailGraphEmb = Node2Vec(emailGraph,workers=num_worker,quiet=True).fit().wv.vectors
-    cluster = sk.AgglomerativeClustering(n_clusters=gBuild.COMMUNITIES_NUM_EMAIL_EU_CORE).fit_predict(emailGraphEmb)
+def main(graph_name: str, num_worker:int, verbose: bool = True):
+    """add features to graph nodes
 
-    predLabels = {i: cluster[i] for i in range(0,cluster.size)}
-    nx.set_node_attributes(emailGraph,predLabels,"pred_labels")
+    Parameters
+    ----------
+    graph_name : str
+        could be one between EMAIL_EU_CORE,WIKI_TOPCATS,COM_AMAZON
+    num_worker: int
+        number of workers to compute the embedding
+    verbose: bool
+        set the verbosity of Node2Vec subroutine (defaul: True --> verbosity on)
 
-    #features adding
-    nx.set_node_attributes(emailGraph,nx.degree(emailGraph),"dg")
-    nx.set_node_attributes(emailGraph,nx.betweenness_centrality(emailGraph),"bv")
-    nx.set_node_attributes(emailGraph,nx.closeness_centrality(emailGraph),"cl")
-    nx.set_node_attributes(emailGraph,nx.clustering(emailGraph),"cc")
-    saveGraph(emailGraph,"email_graph")
+    The script saves the enanched graph as .pickle format in the folder 'graph_dump/'
+    """
+
+    graph = gBuild.build_data(gBuild.GRAPHS[graph_name]["edges_file"],gBuild.GRAPHS[graph_name]["label_file"])
+    graphEmb = Node2Vec(graph,workers=num_worker,quiet=not(verbose)).fit().wv.vectors
+    clusters = sk.AgglomerativeClustering(n_clusters=gBuild.GRAPHS[graph_name]["communities"]).fit_predict(graphEmb)
+
+    predLabels = {i: clusters[i] for i in range(0,clusters.size)}
+    nx.set_node_attributes(graph,predLabels,"pred_labels")
+
+    #features adding 
+    nx.set_node_attributes(graph,nx.degree(graph),"dg")
+    nx.set_node_attributes(graph,nx.betweenness_centrality(graph),"bv")
+    nx.set_node_attributes(graph,nx.closeness_centrality(graph),"cl")
+    nx.set_node_attributes(graph,nx.clustering(graph),"cc")
+    pickle.dump(graph, open(GRAPH_DUMP_FOLDER+gBuild.GRAPHS[graph_name]["graph_name"]+".pickle", "wb"))
     
 
 if __name__ == "__main__":
-    main("",int(sys.argv[1]) if  len(sys.argv)==2 else 1)
+    if sys.argv[1] not in gBuild.GRAPHS:
+        print("Wrong graph as input")
+    else:
+        main(sys.argv[1], int(sys.argv[2]))
 

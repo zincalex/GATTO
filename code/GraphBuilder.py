@@ -1,15 +1,17 @@
 import networkx as nx
-from node2vec import Node2Vec
 
 #region FilePaths
 FILENAME_EDGES_EMAIL_EU_CORE = "Data/email_eu_core/email-Eu-core.txt"
 FILENAME_LABELS_EMAIL_EU_CORE = "Data/email_eu_core/email-Eu-core-department-labels.txt"
+COMMUNITIES_NUM_EMAIL_EU_CORE = 42
 
 FILENAME_EDGES_WIKI_TOPCATS = "Data/wiki_topcats/wiki-topcats.txt"
 FILENAME_LABELS_WIKI_TOPCATS = "Data/wiki_topcats/wiki-topcats-categories.txt"
+COMMUNITIES_NUM_WIKI_TOPCATS = 17364
 
 FILENAME_EDGES_COM_AMAZON = "Data/com_amazon/com-amazon.ungraph.txt"
 FILENAME_LABELS_COM_AMAZON = "Data/com_amazon/com-amazon.all.dedup.cmty.txt"
+COMMUNITIES_NUM_COM_AMAZON = 75149
 #endregion
 
 def build_data(edges_file: str, label_file: str):
@@ -24,8 +26,8 @@ def build_data(edges_file: str, label_file: str):
 
     Returns
     -------
-    dict
-        dict contains: graph (nx.Graph), labels [ list of tuple(int,int) ] 
+    G: graph (nx.Graph)
+        the graph based on edges_file and label_file where each node has community as 'label' attribute
     """
 
     #region read edges_file:
@@ -38,26 +40,25 @@ def build_data(edges_file: str, label_file: str):
     internal_edges_file.close()
     #endregion
 
+    #build Graph
+    G = nx.Graph()
+    G.add_edges_from(edges)    
+
     #region read label_file:
     internal_label_file = open(label_file, "r")
-    labels = []
+    labels = {}
     for line in internal_label_file:
         tmp = line.split(" ")
-        labels.append((int(tmp[0]), int(tmp[1].strip("\n"))))
+        labels[int(tmp[0])]=int(tmp[1].strip("\n"))
 
     internal_label_file.close()
     #endregion
 
-    #build Graph
-    G = nx.Graph()
-    G.add_edges_from(edges)
+    nx.set_node_attributes(G,labels,"label")
 
-    return {
-        "graph" : G,
-        "labels" : labels
-    }
+    return G
 
-def convert_com_amzon_to_standard(label_file: str, out_label_file : str):
+def convert_com_amazon_to_standard(label_file: str, out_label_file : str):
     """convert com-amazon file in a file with our standard format
     Parameters
     ----------
@@ -105,10 +106,3 @@ def convert_wiki_topcats_to_standard(label_file: str, out_label_file : str):
         row += 1
     internal_label_file.close()
     internal_new_label_file.close()
-
-
-"""TEST FOR CLUSTERING
-v = build_data(FILENAME_EDGES_EMAIL_EU_CORE, FILENAME_EDGES_EMAIL_EU_CORE)
-node2vec = Node2Vec(v["graph"], dimensions=64, walk_length=30, num_walks=200, workers=4)
-model = node2vec.fit(window=10, min_count=1, batch_words=4)
-"""

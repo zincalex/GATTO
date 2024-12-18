@@ -42,7 +42,7 @@ def main(graph_name: str, num_worker:int, verbose: bool = True):
     clusters = sk.AgglomerativeClustering(n_clusters=gBuild.GRAPHS[graph_name]["communities"]).fit_predict(graphEmb)
 
     predLabels = {i: clusters[i] for i in range(0,clusters.size)}
-    nx.set_node_attributes(graph,predLabels,"pred_labels")
+    nx.set_node_attributes(graph,predLabels,"pred_label")
 
     #features adding 
     nx.set_node_attributes(graph,nx.degree(graph),"dg")
@@ -50,7 +50,6 @@ def main(graph_name: str, num_worker:int, verbose: bool = True):
     nx.set_node_attributes(graph,nx.closeness_centrality(graph),"cl")
     nx.set_node_attributes(graph,nx.clustering(graph),"cc")
     pickle.dump(graph, open(GRAPH_DUMP_FOLDER+gBuild.GRAPHS[graph_name]["graph_name"]+".pickle", "wb"))
-    
 
 if __name__ == "__main__":
     if sys.argv[1] not in gBuild.GRAPHS:

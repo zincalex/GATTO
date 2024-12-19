@@ -2,7 +2,9 @@ import GraphBuilder as gBuild
 import networkx as nx
 from node2vec import Node2Vec
 import sklearn.cluster as sk
+from joblib import parallel_backend
 import sys
+import math
 import pickle 
 
 GRAPH_DUMP_FOLDER = "graph_dump/"
@@ -20,9 +22,7 @@ GRAPH_DUMP_FOLDER = "graph_dump/"
 # 
 # 
 
-# How to load graph from pickle? --> G = pickle.load(open('filename.pickle', 'rb'))
-
-def main(graph_name: str, num_worker:int, verbose: bool = True):
+def feature_enriching(graph_name: str, num_worker:int, verbose: bool = True):
     """add features to graph nodes
 
     Parameters
@@ -39,12 +39,18 @@ def main(graph_name: str, num_worker:int, verbose: bool = True):
 
     graph = gBuild.build_data(gBuild.GRAPHS[graph_name]["edges_file"],gBuild.GRAPHS[graph_name]["label_file"])
     graphEmb = Node2Vec(graph,workers=num_worker,quiet=not(verbose)).fit().wv.vectors
-    clusters = sk.AgglomerativeClustering(n_clusters=gBuild.GRAPHS[graph_name]["communities"]).fit_predict(graphEmb)
+
+    if math.log(gBuild.GRAPHS[graph_name]["communities"],10) < 2:
+        with parallel_backend('threading', n_jobs=num_worker):
+            clusters = sk.KMeans(n_clusters=gBuild.GRAPHS[graph_name]["communities"],init="k-means++").fit_predict(graphEmb)
+    else:
+        with parallel_backend('threading', n_jobs=num_worker):
+            clusters = sk.AgglomerativeClustering(n_clusters=gBuild.GRAPHS[graph_name]["communities"]).fit_predict(graphEmb)
 
     predLabels = {i: clusters[i] for i in range(0,clusters.size)}
     nx.set_node_attributes(graph,predLabels,"pred_label")
 
-    #features adding 
+    #features enriching 
     nx.set_node_attributes(graph,nx.degree(graph),"dg")
     nx.set_node_attributes(graph,nx.betweenness_centrality(graph),"bv")
     nx.set_node_attributes(graph,nx.closeness_centrality(graph),"cl")
@@ -55,5 +61,5 @@ if __name__ == "__main__":
     if sys.argv[1] not in gBuild.GRAPHS:
         print("Wrong graph as input")
     else:
-        main(sys.argv[1], int(sys.argv[2]))
+        feature_enriching(sys.argv[1], int(sys.argv[2]))
 

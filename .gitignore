@@ -12,3 +12,4 @@
 code/__pycache__/*
 code/my_env
 Data
+*.json

@@ -51,10 +51,11 @@ def feature_enriching(graph_name: str, num_worker:int, verbose: bool = True):
     nx.set_node_attributes(graph,predLabels,"pred_label")
 
     #features enriching 
-    nx.set_node_attributes(graph,nx.degree(graph),"dg")
+    nx.set_node_attributes(graph,nx.degree_centrality(graph),"dg")
     nx.set_node_attributes(graph,nx.betweenness_centrality(graph),"bv")
     nx.set_node_attributes(graph,nx.closeness_centrality(graph),"cl")
     nx.set_node_attributes(graph,nx.clustering(graph),"cc")
+    if verbose : print("SAVING THE GRAPH ",graph_name,"AS ",gBuild.GRAPHS[graph_name]["graph_name"],".pickle")
     pickle.dump(graph, open(GRAPH_DUMP_FOLDER+gBuild.GRAPHS[graph_name]["graph_name"]+".pickle", "wb"))
 
 if __name__ == "__main__":

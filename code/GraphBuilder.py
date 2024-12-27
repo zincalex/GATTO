@@ -62,7 +62,8 @@ def build_data(edges_file: str, label_file: str):
     labels = {}
     for line in internal_label_file:
         tmp = line.split(" ")
-        labels[int(tmp[0])]=int(tmp[1].strip("\n"))
+        if tmp[0] != "":
+            labels[int(tmp[0])]=int(tmp[1].strip("\n"))
 
     internal_label_file.close()
     #endregion

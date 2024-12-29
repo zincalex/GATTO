@@ -58,58 +58,7 @@ class GraphAnalysis:
         self.graph = None
         self.labels = None
     
-    def analyze_node_features(self, G):
-        # Get the node features as a numpy array
-        node_features = G.node_features()
-        
-        # Convert to pandas DataFrame for better visualization
-        feature_df = pd.DataFrame(
-            node_features,
-            index=G.nodes(),
-            columns=[f"feature_{i}" for i in range(node_features.shape[1])]
-        )
-        
-        print("\nNode Features Shape:", node_features.shape)
-        print("\nFirst 5 nodes with their features:")
-        print(feature_df.head())
-        
-        # Show non-zero features for the first node
-        first_node = feature_df.index[0]
-        non_zero_features = feature_df.loc[first_node][feature_df.loc[first_node] != 0]
-        
-        print(f"\nNon-zero features for paper {first_node}:")
-        print(f"This paper contains {len(non_zero_features)} words from the vocabulary")
-        print(non_zero_features)
-        
-        # Count papers containing each word
-        word_counts = (feature_df != 0).sum()
-        print("\nMost common words in the dataset (by feature number):")
-        print(word_counts.nlargest(10))
-        
-        return feature_df
-
-    def analyze_node_features_nx(self, G_nx): 
-        for node, data in G_nx.nodes(data=True):
-            print(f"Node {node} attributes: {data}")
-            break 
-
-        return
     
-
-    def aggregate_features(self, node_id, node_data) :
-        """ Aggregate all features in the node"""
-        feature_vector = []
-
-        for key, value in node_data.items():
-            #print(f"  {key}: {value}")  # Print feature name and value
-            if key != 'label' and key != 'pred_label':
-                feature_vector.append(value)
-        
-
-        #print(f"Node {node_id} features: {len(feature_vector)}")
-        return feature_vector
-    
-
     def load_graph(self, dataset, extra_features_path):
         """Load graph from pickle file and extract node features"""
         # LOAD FEATURES IF NEEDED 

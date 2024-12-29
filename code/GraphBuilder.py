@@ -23,6 +23,13 @@ GRAPHS = {
         "label_file" : "Data/com_amazon/com-amazon.all.dedup.cmty-std.txt",
         "label_file_no_std" : "Data/com_amazon/com-amazon.all.dedup.cmty.txt",
         "communities" : 75149
+    },
+
+    "CORA_TEST" : {
+        "graph_name":"cora",
+        "edges_file" : "Data/cora_test/cora.edges",
+        "label_file" : "Data/cora_test/cora.node_labels",
+        "communities" : 7
     }
 }
 #endregion

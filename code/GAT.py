@@ -25,66 +25,122 @@ Se hai dubbi, chiedimi o leggi la doc ( AI enjoyer :) )
 from gc import callbacks
 import pickle
 import numpy as np
+import stellargraph as sg
 from stellargraph import StellarGraph
 from stellargraph.mapper import FullBatchNodeGenerator
 from stellargraph.layer import GAT
+from stellargraph import datasets
 from sklearn import model_selection, preprocessing
 from tensorflow.keras import Model, optimizers, losses, metrics, layers 
-import test
+
+import matplotlib.pyplot as plt
 from tqdm.keras import TqdmCallback
 import pandas as pd
 import networkx as nx
 import os
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", type = str, help="Dataset chosen", default = 0)
+parser.add_argument("-e", type = int, help="Add extra features", default = 0)
+args = parser.parse_args()
+
+if args.d not in ("Cora", "CiteSeer","PubMedDiabetes") :
+    raise ValueError(f"Invalid value for -t: {args.d}")
+if args.e not in (0, 1) :
+    raise ValueError(f"Invalid value for -t: {args.e}. Expected values are 0 or 1.")
+
+
 
 class GraphAnalysis:
     def __init__(self):
         self.graph = None
         self.labels = None
+    
+    def analyze_node_features(self, G):
+        # Get the node features as a numpy array
+        node_features = G.node_features()
         
+        # Convert to pandas DataFrame for better visualization
+        feature_df = pd.DataFrame(
+            node_features,
+            index=G.nodes(),
+            columns=[f"feature_{i}" for i in range(node_features.shape[1])]
+        )
+        
+        print("\nNode Features Shape:", node_features.shape)
+        print("\nFirst 5 nodes with their features:")
+        print(feature_df.head())
+        
+        # Show non-zero features for the first node
+        first_node = feature_df.index[0]
+        non_zero_features = feature_df.loc[first_node][feature_df.loc[first_node] != 0]
+        
+        print(f"\nNon-zero features for paper {first_node}:")
+        print(f"This paper contains {len(non_zero_features)} words from the vocabulary")
+        print(non_zero_features)
+        
+        # Count papers containing each word
+        word_counts = (feature_df != 0).sum()
+        print("\nMost common words in the dataset (by feature number):")
+        print(word_counts.nlargest(10))
+        
+        return feature_df
+
+    def analyze_node_features_nx(self, G_nx): 
+        for node, data in G_nx.nodes(data=True):
+            print(f"Node {node} attributes: {data}")
+            break 
+
+        return
+    
+
     def aggregate_features(self, node_id, node_data) :
         """ Aggregate all features in the node"""
         feature_vector = []
 
         for key, value in node_data.items():
-            if key != 'label':
+            #print(f"  {key}: {value}")  # Print feature name and value
+            if key != 'label' and key != 'pred_label':
                 feature_vector.append(value)
         
+
+        #print(f"Node {node_id} features: {len(feature_vector)}")
         return feature_vector
     
 
-    def load_graph(self, pickle_path):
+    def load_graph(self, dataset, extra_features_path):
         """Load graph from pickle file and extract node features"""
-        with open(pickle_path, 'rb') as f:
-            nx_graph = pickle.load(f)
+        # LOAD FEATURES IF NEEDED 
+        G, node_subjects = dataset.load()
+
+        if len(extra_features_path) != 0 : 
+
+            with open(extra_features_path, 'rb') as file:
+                new_features = pickle.load(file)
+
         
-        # Extract some information from the graph
-        labels = []
-        node_ids = []
-        for node_id, node_data in nx_graph.nodes(data=True):
-            labels.append(node_data['label'])
-            node_ids.append(node_id)
-            node_data["features_aggregation"] = self.aggregate_features(node_id, node_data)
 
-        # Encode labels
-        label_encoder = preprocessing.LabelEncoder()
-        label_encoder.fit(labels)
-        encoded_labels = pd.Series(label_encoder.transform(labels), index=node_ids)
+            node_features = G.node_features()
+            updated_features = np.hstack([node_features, new_features])
 
-        # Ensure a sufficient number of labels per node
-        label_counts = encoded_labels.value_counts()
-        valid_labels = label_counts[label_counts > 10].index
-        valid_nodes = [node for node in encoded_labels.index if encoded_labels[node] in valid_labels]
+            # Create pd.DataFrame needed for stellargraph
+            node_data = pd.DataFrame(updated_features, index=G.nodes())  # Ensure node index is consistent
 
-        # Remove invalid nodes from the graph and corresponding data
-        nx_graph.remove_nodes_from([node for node in nx_graph.nodes if node not in valid_nodes])
-        encoded_labels = encoded_labels.loc[valid_nodes]
+            
+            edges_list = G.edges()  # List of tuples (start, end)
 
-        #self.nodes_features = feature_df
-        self.labels = encoded_labels
+            # Create DataFrame
+            edges_df = pd.DataFrame(edges_list, columns=["source", "target"])
+            
+            G = StellarGraph(nodes=node_data, edges=edges_df)
 
-        # Try to convert to StellarGraph
-        self.graph = StellarGraph.from_networkx(nx_graph, node_features="features_aggregation",  node_type_attr=None)
 
+        self.graph = G 
+        self.labels = node_subjects
+        
+        
 
 
     def train_val_test_data_split(self, train_split, val_split):
@@ -94,50 +150,45 @@ class GraphAnalysis:
         nodes_indxs = self.labels.index
 
         # Use sklearn to split the data
-        train_nodes, test_nodes = model_selection.train_test_split(nodes_indxs, test_size=1-train_split, stratify=self.labels[nodes_indxs], random_state=42)
-        val_nodes, test_nodes = model_selection.train_test_split(test_nodes, test_size=1-val_split, stratify=self.labels[test_nodes], random_state=42)
+        train_nodes, test_nodes = model_selection.train_test_split(self.labels, test_size=1-train_split, stratify=self.labels, random_state=42)
+        val_nodes, test_nodes = model_selection.train_test_split(test_nodes, test_size=1-val_split, stratify=test_nodes, random_state=42)
         
         return train_nodes, val_nodes, test_nodes
 
 
 
     
-    def train_gat(self, train_nodes, val_nodes, test_nodes, epochs=1000, batch_size=64):
+    def train_gat(self, train_nodes, val_nodes, test_nodes, epochs=10000, batch_size=32):
         """Train GAT model"""
         # Nodes: 916, Edges: 13993    26 unique labels  [ 1 21 14  9  4 17 34 11  5 10 36 37  7 22  8 15  3 20 16 38 13  6  0 35 23 19]
 
         # Conversion to one-hot vectors --- remember here some labels are nomore, hence if problem look here
         target_encoding = preprocessing.LabelBinarizer()
-        target_encoding.fit(self.labels)
-        train_labels_onehot = target_encoding.transform(self.labels[train_nodes])          # Here we fit because we need to determine the lenght of the encoding
-        val_labels_onehot = target_encoding.transform(self.labels[val_nodes])
-        test_labels_onehot = target_encoding.transform(self.labels[test_nodes])
+        train_labels_onehot = target_encoding.fit_transform(train_nodes)          # Here we fit because we need to determine the lenght of the encoding
+        val_labels_onehot = target_encoding.transform(val_nodes)
+        test_labels_onehot = target_encoding.transform(test_nodes)
         
 
         # The error occurs during the loss computation, where Keras tries to compute the categorical cross-entropy between the true labels and predicted labels.
-        print(f"TR shape : {train_nodes.shape}")
-        print(train_labels_onehot.shape[1])
-        print(f"Train labels shape: {train_labels_onehot.shape}")
-        print(f"Validation labels shape: {val_labels_onehot.shape}")
-        print(f"Test labels shape: {test_labels_onehot.shape}")
+        print(f"Train labels shape (num nodes, tot labels): {train_labels_onehot.shape}")
 
 
         # Create generators
         generator = FullBatchNodeGenerator(self.graph, method="gat", sparse=False)
         
-        train_gen = generator.flow(train_nodes, train_labels_onehot)
-        val_gen = generator.flow(val_nodes, val_labels_onehot )
-        test_gen = generator.flow(test_nodes, test_labels_onehot)
+        train_gen = generator.flow(train_nodes.index, train_labels_onehot)
+        val_gen = generator.flow(val_nodes.index, val_labels_onehot )
+        test_gen = generator.flow(test_nodes.index, test_labels_onehot)
         
 
         # Create GAT model
         gat = GAT(
-            layer_sizes=[8, 8],
+            layer_sizes=[8, train_labels_onehot.shape[1]],
             activations=['elu', 'softmax'],
-            attn_heads=1,
+            attn_heads=8,
             generator=generator,
-            in_dropout=0.3,
-            attn_dropout=0.6,
+            in_dropout=0.5,
+            attn_dropout=0.5,
             normalize=None,
         )
         
@@ -145,13 +196,13 @@ class GraphAnalysis:
         x_inp, gat_output = gat.in_out_tensors()
 
         # Add a Dense layer to map the GAT output to the correct number of classes
-        predictions = layers.Dense(train_labels_onehot.shape[1], activation='softmax')(gat_output)
-        print(f"Model predictions shape: {predictions.shape}")
+        #predictions = layers.Dense(train_labels_onehot.shape[1], activation='softmax')(gat_output)
+        #print(f"Model predictions shape: {predictions.shape}")
 
         # Build and compile the model
-        model = Model(inputs=x_inp, outputs=predictions)
+        model = Model(inputs=x_inp, outputs=gat_output)
         model.compile(
-            optimizer=optimizers.Adam(learning_rate=0.01),
+            optimizer=optimizers.Adam(learning_rate=0.005),
             loss=losses.categorical_crossentropy,
             metrics=['acc']
         )
@@ -166,7 +217,9 @@ class GraphAnalysis:
             shuffle=False,
             callbacks = [tqdm_callback]
         )
-    
+        sg.utils.plot_history(history)
+        plt.show()
+
         # Evaluate
         test_metrics = model.evaluate(test_gen)
         print(f"\nTest Accuracy: {test_metrics[1]:.4f}")
@@ -181,21 +234,25 @@ def main():
     os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+    DATASET = {"Cora" : datasets.Cora(), "CiteSeer" : datasets.CiteSeer(), "PubMedDiabetes" : datasets.PubMedDiabetes()} 
+    dataset = DATASET[args.d]
 
     # PARAMETERS 
-    TRAIN_SPLIT = 0.8
-    VAL_SPLIT = 0.1 
-
-    
+    TRAIN_SPLIT = 0.7
+    VAL_SPLIT = 0.2
+    EPOCHS = 100
 
     # DATASET   
-    dataset_path = "../code/graph_dump/email_eu_core.pickle"
+    extra_features_path = ""
+    if args.e == 1 : 
+        extra_features_path = "../code/graph_dump/" + args.d + ".pickle"
+    
 
 
     analyzer = GraphAnalysis()
-    analyzer.load_graph(dataset_path)
+    analyzer.load_graph(dataset, extra_features_path)
     train_nodes, val_nodes, test_nodes = analyzer.train_val_test_data_split(TRAIN_SPLIT, VAL_SPLIT)
-    model, history = analyzer.train_gat(train_nodes, val_nodes, test_nodes)
+    model, history = analyzer.train_gat(train_nodes, val_nodes, test_nodes, epochs=EPOCHS)
 
 if __name__ == '__main__':
     main()

@@ -22,14 +22,16 @@ ex. label
 Se hai dubbi, chiedimi o leggi la doc ( AI enjoyer :) )
 '''
 
+from gc import callbacks
 import pickle
 import numpy as np
 from stellargraph import StellarGraph
 from stellargraph.mapper import FullBatchNodeGenerator
 from stellargraph.layer import GAT
 from sklearn import model_selection, preprocessing
-from tensorflow.keras import Model, optimizers, losses, metrics
-from tqdm import tqdm
+from tensorflow.keras import Model, optimizers, losses, metrics, layers 
+import test
+from tqdm.keras import TqdmCallback
 import pandas as pd
 import networkx as nx
 import os
@@ -102,54 +104,69 @@ class GraphAnalysis:
     
     def train_gat(self, train_nodes, val_nodes, test_nodes, epochs=1000, batch_size=64):
         """Train GAT model"""
+        # Nodes: 916, Edges: 13993    26 unique labels  [ 1 21 14  9  4 17 34 11  5 10 36 37  7 22  8 15  3 20 16 38 13  6  0 35 23 19]
+
+        # Conversion to one-hot vectors --- remember here some labels are nomore, hence if problem look here
+        target_encoding = preprocessing.LabelBinarizer()
+        target_encoding.fit(self.labels)
+        train_labels_onehot = target_encoding.transform(self.labels[train_nodes])          # Here we fit because we need to determine the lenght of the encoding
+        val_labels_onehot = target_encoding.transform(self.labels[val_nodes])
+        test_labels_onehot = target_encoding.transform(self.labels[test_nodes])
+        
+
+        # The error occurs during the loss computation, where Keras tries to compute the categorical cross-entropy between the true labels and predicted labels.
+        print(f"TR shape : {train_nodes.shape}")
+        print(train_labels_onehot.shape[1])
+        print(f"Train labels shape: {train_labels_onehot.shape}")
+        print(f"Validation labels shape: {val_labels_onehot.shape}")
+        print(f"Test labels shape: {test_labels_onehot.shape}")
+
+
         # Create generators
-        generator = FullBatchNodeGenerator(self.graph, method="gat")
+        generator = FullBatchNodeGenerator(self.graph, method="gat", sparse=False)
         
-        train_gen = generator.flow(train_nodes, self.labels[train_nodes])
-        val_gen = generator.flow(val_nodes, self.labels[val_nodes])
-        test_gen = generator.flow(test_nodes, self.labels[test_nodes])
+        train_gen = generator.flow(train_nodes, train_labels_onehot)
+        val_gen = generator.flow(val_nodes, val_labels_onehot )
+        test_gen = generator.flow(test_nodes, test_labels_onehot)
         
+
         # Create GAT model
         gat = GAT(
             layer_sizes=[8, 8],
             activations=['elu', 'softmax'],
-            attn_heads=8,
+            attn_heads=1,
             generator=generator,
-            in_dropout=0.5,
-            attn_dropout=0.5,
+            in_dropout=0.3,
+            attn_dropout=0.6,
             normalize=None,
         )
         
+        # Get input/output tensors from the GAT model
+        x_inp, gat_output = gat.in_out_tensors()
+
+        # Add a Dense layer to map the GAT output to the correct number of classes
+        predictions = layers.Dense(train_labels_onehot.shape[1], activation='softmax')(gat_output)
+        print(f"Model predictions shape: {predictions.shape}")
+
         # Build and compile the model
-        x_inp, predictions = gat.in_out_tensors()
         model = Model(inputs=x_inp, outputs=predictions)
         model.compile(
-            optimizer=optimizers.Adam(learning_rate=0.005),
-            loss=losses.sparse_categorical_crossentropy,
+            optimizer=optimizers.Adam(learning_rate=0.01),
+            loss=losses.categorical_crossentropy,
             metrics=['acc']
         )
         
         # Train
+        tqdm_callback = TqdmCallback()
         history = model.fit(
             train_gen,
             epochs=epochs,
             validation_data=val_gen,
-            verbose=2, 
+            verbose=0, 
             shuffle=False,
+            callbacks = [tqdm_callback]
         )
     
-            
-
-
-        # Train with progress bar
-        #history = model.fit(
-         #   train_gen,
-          #  epochs=epochs,
-           # validation_data=val_gen,
-            #verbose=0,
-            #callbacks=[tqdm.keras]
-        #)
-        
         # Evaluate
         test_metrics = model.evaluate(test_gen)
         print(f"\nTest Accuracy: {test_metrics[1]:.4f}")

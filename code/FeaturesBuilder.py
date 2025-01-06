@@ -53,7 +53,7 @@ def feature_enriching(graph_name: str, num_worker:int, verbose: bool = True):
     pickle.dump(graph, open(GRAPH_DUMP_FOLDER+gBuild.GRAPHS[graph_name]["graph_name"]+".pickle", "wb"))
 
 
-def feature_computation(graph_name: str, out_name: str, num_community: str, num_worker: int, verbose: bool = True):
+def feature_computation(graph_name: str, out_name: str, num_community: int, num_worker: int, verbose: bool = True):
     
     #Graph definition
     print("load pickle")
@@ -75,8 +75,11 @@ def feature_computation(graph_name: str, out_name: str, num_community: str, num_
 
     print("compute features")
     dg = pd.DataFrame.from_dict(nx.degree_centrality(graph), orient='index')
+    print("Degree centrality: DONE")
     bv = pd.DataFrame.from_dict(nx.betweenness_centrality(graph), orient='index')
+    print("Betwenness centrality: DONE")
     cl = pd.DataFrame.from_dict(nx.closeness_centrality(graph), orient='index')
+    print("Closenness centrality: DONE")
 #    cc = pd.DataFrame.from_dict(nx.clustering(graph), orient="index")
     ia = [None] * len(dg.index)
     for i in range(0, len(dg.index.values)): ia[i] = [dg.index[i]]

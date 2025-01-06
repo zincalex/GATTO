@@ -74,15 +74,60 @@ University of Padova \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{ABSTRACT} 
+In this report we study how topological features of a node can affect its prediction on GAT (Graph Attention Network).
+We introduce the dataset, the type of feature we computed and we compare our result with the 
+original GAT paper. We also use a graph with ground truth but without freatures to observe how only 
+topological feature produce prediction. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION} 
+Node classification is an important reasearch and business topic.
+Our framework GATTO (Graph ATtention network with TOpological information) want to 
+improve the classic GAT prediction using node feature coming from the graph or from its 
+embedding. The main idea is to using topological features to imporve prediction of GAT, where each node already have features in it. 
+Another possible use is when node didn't have any features, so we compute and use them for GAT train.
+In this paper we explore both scenarios. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{DATA} 
+We're going to use the same dataset of GAT$^\text{\cite{GAT}}$, with features to each node, and one Graph with ground truth from SNAP $^\text{\cite{SNAP}}$ (without features).
+the Dataset of GAT are: \textit{Cora, Citeseer and Pubmed}. For SNAP, we have \textit{email-Eu-core}. Each node have only one label and the graph is mix directed/undirected
+\\
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \textbf{Network} & \textbf{Nodes} & \textbf{Edges} & \textbf{labels} & \textbf{features} \\
+    \hline
+    email-EU-core  & 1005 & 25571 & 42 & 0     \\
+    Cora           & 2708 & 5429  & 7  & 1443  \\
+    Citeseer       & 3327 & 4732  & 6  & 3703  \\
+    Pubmed        & 19717 & 44338 & 3  & 500   \\
+    \hline
+    \end{tabular}
+\end{table}
+\\
+The feature we intended to compute and assign to each node for all these graphs are:
+\begin{itemize}
+    \item degree centrality
+    \item betweenness centrality
+    \item closeness centrality
+    \item suggested label
+\end{itemize}
+The \textit{suggested label} parameter is the result of a clustering made on the embedding of the Graph.
+We use Node2Vec$^\text{\cite{node2vec}}$ to produce the embedding, and for clustering we use k-mean++ method.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{IMPLEMENTATION} 
+The practical implementation$^{\text{\cite{scikitGitHub}}}$ respect the nature of the the framework concept.
+We have two block:
+\begin{itemize}
+    \item{\textbf{Precomputation Module}: the class that compute every needed or requested features from the graph or from it's embedding, and return it as feature matrix}
+    \item{\textbf{GAT Module}: the GAT implementation for train and predict node labels}
+\end{itemize}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{TESTS} 
@@ -93,6 +138,13 @@ University of Padova \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{\fill}
 \printbibliography
-
+\newpage
+\section*{Work Report}
+In this section we want to describe the distribution of the work and detailed contribution of each member.
+\begin{itemize}
+    \item \textit{Francesco Biscaccia Carrara (2120934)}: {\textbf{33.3\% of the work}. Produce the code compute features and Runnig test on CAPRI}\\
+    \item \textit{Alessandro Viespoli (2120824)}: {\textbf{33.3\% of the work}. Produce the code for the GAT and the code for plotting results}\\
+    \item \textit{Riccardo Modolo (2123750)}: {\textbf{33.3\% of the work}. Produce the code to retrieve data, review code, write Proposal, Midterm  and final Paper}
+\end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}

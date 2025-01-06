@@ -98,9 +98,9 @@ if __name__ == "__main__":
     print("start computing CORA")
     feature_computation("graph_dump/Cora_graph.pickle", "graph_dump/Cora_feature.pickle", 7, 10)
     print("start computing CiteSeer")
-    feature_computation("graph_dump/CiteSeer_graph.pickle", "graph_dump/CiteSeer_feature.pickle", 7, 10)
+    feature_computation("graph_dump/CiteSeer_graph.pickle", "graph_dump/CiteSeer_feature.pickle", 6, 10)
     print("start computing PubMed")
-    feature_computation("graph_dump/PubMedDiabetes_graph.pickle", "graph_dump/PubMedDiabetes_feature.pickle", 7, 10)
+    feature_computation("graph_dump/PubMedDiabetes_graph.pickle", "graph_dump/PubMedDiabetes_feature.pickle", 3, 10)
 #    if sys.argv[1] not in gBuild.GRAPHS:
 #        print("Wrong graph as input")
 #    else:

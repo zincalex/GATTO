@@ -14,3 +14,9 @@ Here are the links to download all datasets we used in this essay.
 
 ---
 Final Score : X/8
+---
+
+singularity pull docker://python:3.8.10
+Singularity.def
+singularity build python3.8.10 Singularity.def
+---

@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH -J GATTO_Cora
+#SBATCH -o GATTO_Cora_%j.out
+#SBATCH -e GATTO_Cora_%j.err
+#SBATCH --mail-user francesco.biscacciacarrara@studenti.unipd.it
+#SBATCH --mail-type ALL
+#SBATCH -n 8
+#SBATCH -p allgroups
+#SBATCH -t 00:30:00
+#SBATCH --mem 30G
+
+cd $SLURM_SUBMIT_DIR
+
+singularity exec --nv python3.8.10.sif python3 ../code/FeaturesBuilder.py -d Cora -p $SLURM_NTASKS

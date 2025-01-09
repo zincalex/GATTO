@@ -41,10 +41,10 @@ def feature_computation(graph_name: str, out_name: str, num_community: int, num_
     if verbose : print("Compute CLUSTERING...")
     if bound < 2:
         with parallel_backend('threading', n_jobs=num_worker):
-            clusters = sk.KMeans(n_clusters=num_community,init="k-means++").fit_predict(graph_embedding)
+            clusters = sk.KMeans(n_clusters=num_community,init="k-means++",n_init="auto").fit_predict(graph_embedding)
     else:
         with parallel_backend('threading', n_jobs=num_worker):
-            clusters = sk.AgglomerativeClustering(n_clusters=num_community).fit_predict(graph_embedding)
+            clusters = sk.AgglomerativeClustering(n_clusters=num_community,n_init="auto").fit_predict(graph_embedding)
     if verbose : print("CLUSTERING finished")
 
     #Feature Computation

@@ -11,5 +11,5 @@
 
 cd $SLURM_SUBMIT_DIR
 
-singularity exec --nv --pwd /code ../python3.8.10.sif python3 FeaturesBuilder.py -d CiteSeer -p $SLURM_NTASKS
+singularity exec --nv --pwd /code --bind ./code:/code ../python3.8.10.sif python3 FeaturesBuilder.py -d CiteSeer -p $SLURM_NTASKS
 

@@ -34,9 +34,9 @@ parser.add_argument("-e", type = int, help="Add extra features", default = 0)
 args = parser.parse_args()
 
 if args.d not in ("Cora", "CiteSeer","PubMedDiabetes") :
-    raise ValueError(f"Invalid value for -t: {args.d}")
+    raise ValueError(f"Invalid value for -d: {args.d}")
 if args.e not in (0, 1) :
-    raise ValueError(f"Invalid value for -t: {args.e}. Expected values are 0 or 1.")
+    raise ValueError(f"Invalid value for -e: {args.e}. Expected values are 0 or 1.")
 
 
 

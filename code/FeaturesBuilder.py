@@ -9,7 +9,7 @@ import math
 import pickle 
 
 GRAPH_DUMP_FOLDER = "graph_dump/"
-DATASET_LABEL = {"Cora" : 7, "CiteSeer" : 6, "PubMedDiabetes" : 3, "email_eu_core":42}  
+DATASET_LABEL = {"Cora" : 7, "CiteSeer" : 6, "PubMedDiabetes" : 3}  
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", type = str, help="Dataset chosen", default = "")
@@ -17,7 +17,7 @@ parser.add_argument("-p", type = int, help="Set number of workers", default = 1)
 parser.add_argument("-v", type = bool, help="Set verbosity", default=False)
 args = parser.parse_args()
 
-if args.d not in ("Cora", "CiteSeer","PubMedDiabetes","email_eu_core") :
+if args.d not in DATASET_LABEL :
     raise ValueError(f"Invalid value for -d: {args.d}")
 if args.p not in range(1, 128) :
     raise ValueError(f"Invalid value for -p: {args.p}. Expected values are between 1 and 128.")
@@ -67,10 +67,10 @@ def feature_computation(graph_name: str, out_name: str, num_community: int, num_
     merged_feature = pd.concat([ dg, bv, cl ], axis=1)
     merged_feature = np.hstack((ia, merged_feature))
     merged_feature = np.hstack((merged_feature, cs))
-    print(merged_feature)
+    if verbose: print(merged_feature)
 
     if verbose : print("Saving the FEATURES MATRIX as ", out_name)
-    pickle.dump(graph, open(out_name, "wb"))
+    pickle.dump(merged_feature, open(out_name, "wb"))
 
 if __name__ == "__main__":
     if args.v : print(f"Start computing {args.d}...")

@@ -3,14 +3,11 @@ import argparse
 import pickle
 import numpy as np
 import pandas as pd
-import networkx as nx
-import matplotlib.pyplot as plt
 from sklearn import model_selection, preprocessing
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-from tensorflow.keras import Model, optimizers, losses, layers, metrics, callbacks
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from tensorflow.keras import Model, optimizers, losses, callbacks
 from tqdm.keras import TqdmCallback
 
-import stellargraph as sg
 from stellargraph import StellarGraph, datasets
 from stellargraph.mapper import FullBatchNodeGenerator
 from stellargraph.layer import GAT
@@ -24,16 +21,16 @@ DATASET = {"Cora" : datasets.Cora(), "CiteSeer" : datasets.CiteSeer(), "PubMedDi
 SKIP_TRAINING = False
 TRAIN_SPLIT = 0.7
 VAL_SPLIT = 0.1
-EPOCHS = 1000
+EPOCHS = 10000
 HIDDEN_LAYERS = 8
-ATTENTION_HEADS = 6
+ATTENTION_HEADS = 8
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", type = str, help="Dataset chosen", default = 0)
 parser.add_argument("-e", type = int, help="Add extra features", default = 0)
 args = parser.parse_args()
 
-if args.d not in ("Cora", "CiteSeer","PubMedDiabetes") :
+if args.d not in DATASET :
     raise ValueError(f"Invalid value for -d: {args.d}")
 if args.e not in (0, 1) :
     raise ValueError(f"Invalid value for -e: {args.e}. Expected values are 0 or 1.")
@@ -65,17 +62,17 @@ class GraphAnalysis:
             # Extract existing node features from the graph
             node_features = G.node_features()
 
-            # Combine existing features with the new features horizontally
-            updated_features = np.hstack([node_features, new_features])
+            node_features_pd = pd.DataFrame(node_features, index=G.nodes())
+            new_features_pd = pd.DataFrame(new_features)
+            new_features_pd = new_features_pd.set_index([0])
 
-            # Create a DataFrame for the updated node features
-            node_data = pd.DataFrame(updated_features, index=G.nodes())  # Ensure node index is consistent
+            updated_features = node_features_pd.merge(new_features_pd)
 
             edges_list = G.edges()  # List of tuples (start, end)
             edges_df = pd.DataFrame(edges_list, columns=["source", "target"])
             
             # Create a new StellarGraph object
-            G = StellarGraph(nodes=node_data, edges=edges_df)
+            G = StellarGraph(nodes=updated_features, edges=edges_df)
 
         self.graph = G 
         self.labels = node_subjects

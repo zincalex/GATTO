@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH -J GATTO_CiteSeer_G-0
+#SBATCH -o GATTO_CiteSeer_G-0_%j.out
+#SBATCH -e GATTO_CiteSeer_G-0_%j.err
+#SBATCH --mail-user francesco.biscacciacarrara@studenti.unipd.it
+#SBATCH --mail-type ALL
+#SBATCH -n 8
+#SBATCH -p allgroups
+#SBATCH -t 00:30:00
+#SBATCH --mem 30G
+
+cd $SLURM_SUBMIT_DIR
+
+singularity exec --nv --pwd ../code --bind ../code:/code ../python3.8.10.sif python3 GAT.py -d CiteSeer
+

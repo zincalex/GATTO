@@ -4,6 +4,7 @@ From: python:3.8.10
 %post
     # Install Python dependencies
     pip install argparse numpy pandas networkx matplotlib scikit-learn tensorflow tqdm stellargraph node2vec joblib seaborn
+    
 %environment
     # Set environment variables
     export LC_ALL=C.UTF-8

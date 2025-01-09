@@ -232,7 +232,7 @@ def main():
 
     # Plot and save confusion matrix
     class_names = np.unique(analyzer.labels)  # Get unique class names
-    plots.plot_and_save_confusion_matrix(y_true_labels, y_pred_labels, class_names, save_path=f"logs/{args.d}_confusion_matrix.png")
+    plots.plot_and_save_confusion_matrix(y_true_labels, y_pred_labels, class_names, save_path=f"logs/{args.d}_confusion_matrix_{args.e}.png")
 
 
 

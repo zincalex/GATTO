@@ -61,13 +61,26 @@ class GraphAnalysis:
 
             # Extract existing node features from the graph
             node_features = G.node_features()
-
             node_features_pd = pd.DataFrame(node_features, index=G.nodes())
             new_features_pd = pd.DataFrame(new_features)
-            new_features_pd = new_features_pd.set_index([0])
 
-            updated_features = node_features_pd.merge(new_features_pd)
+            node_features_pd.index = node_features_pd.index.astype(str)  # Convert to string for consistent merging
+            new_features_pd = new_features_pd.set_index(0)
 
+            # Select all colums/features expect column 0 from new_features_pd
+            new_features_to_add = new_features_pd.iloc[:, :]
+            new_features_to_add = new_features_to_add.reindex(node_features_pd.index)
+            new_features_to_add = new_features_to_add.fillna(-1) # Fill NaN values with -1 
+
+            # Add the new features as additional columns to `node_features_pd`
+            updated_features = pd.concat([node_features_pd, new_features_to_add], axis=1)
+
+            # Rename the columns of the combined DataFrame
+            original_column_count = node_features_pd.shape[1]
+            new_feature_column_names = [f"{original_column_count + i}" for i in range(new_features_to_add.shape[1])]
+            all_column_names = list(node_features_pd.columns) + new_feature_column_names
+            updated_features.columns = all_column_names
+    
             edges_list = G.edges()  # List of tuples (start, end)
             edges_df = pd.DataFrame(edges_list, columns=["source", "target"])
             
@@ -211,7 +224,7 @@ def main():
     # DATASET   
     extra_features_path = ""
     if args.e == 1 : 
-        extra_features_path = "../code/graph_dump/" + args.d + ".pickle"
+        extra_features_path = "../code/graph_dump/" + args.d + "_feature.pickle"
     
     analyzer = GraphAnalysis()
     analyzer.load_graph(dataset, extra_features_path)

@@ -6,7 +6,7 @@
 #SBATCH --mail-type ALL
 #SBATCH -n 8
 #SBATCH -p allgroups
-#SBATCH -t 00:30:00
+#SBATCH -t 01:30:00
 #SBATCH --mem 30G
 
 cd $SLURM_SUBMIT_DIR

@@ -4,12 +4,11 @@
 #SBATCH -e GATTO_Cora_G-0_%j.err
 #SBATCH --mail-user francesco.biscacciacarrara@studenti.unipd.it
 #SBATCH --mail-type ALL
-#SBATCH -n 1
+#SBATCH -n 16
 #SBATCH -p allgroups
-#SBATCH -t 01:30:00
+#SBATCH -t 02:30:00
 #SBATCH --mem 30G
-#SBATCH --gres=gpu:1
 
 cd $SLURM_SUBMIT_DIR
 
-singularity exec --nv --pwd ../code --bind ../code:/code ../python3.8.10.sif python3 GAT.py -d Cora
+singularity exec --nv --pwd ../code --bind ../code:/code ../python3.8.10.sif python3 GAT.py -d Cora -p $SLURM_NTASKS

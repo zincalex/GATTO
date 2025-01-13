@@ -4,12 +4,11 @@
 #SBATCH -e GATTO_PubMed_G-0_%j.err
 #SBATCH --mail-user francesco.biscacciacarrara@studenti.unipd.it
 #SBATCH --mail-type ALL
-#SBATCH -n 1
+#SBATCH -n 32
 #SBATCH -p allgroups
-#SBATCH -t 02:30:00
+#SBATCH -t 04:30:00
 #SBATCH --mem 100G
-#SBATCH --gres=gpu:1
 
 cd $SLURM_SUBMIT_DIR
 
-singularity exec --nv --pwd ../code --bind ../code:/code ../python3.8.10.sif python3 GAT.py -d PubMedDiabetes
+singularity exec --nv --pwd ../code --bind ../code:/code ../python3.8.10.sif python3 GAT.py -d PubMedDiabetes -p $SLURM_NTASKS

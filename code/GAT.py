@@ -28,6 +28,7 @@ ATTENTION_HEADS = 8
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", type = str, help="Dataset chosen", default = 0)
 parser.add_argument("-e", type = int, help="Add extra features", default = 0)
+parser.add_argument("-p",type = int, help="Set number of processor", default = 0)
 args = parser.parse_args()
 
 if args.d not in DATASET :
@@ -208,6 +209,11 @@ class GraphAnalysis:
 
 
 def main(): 
+    if args.p > 0:
+        os.environ["OMP_NUM_THREADS"] = argps.p 
+        os.environ["TF_NUM_INTEROP_THREADS"] = argps.p
+        os.environ["TF_NUM_INTRAOP_THREADS"] = argps.p
+
     # Disable warnings
     os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

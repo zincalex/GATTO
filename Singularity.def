@@ -3,7 +3,7 @@ From: python:3.8.10
 
 %post
     # Install Python dependencies
-    pip install argparse numpy pandas networkx matplotlib scikit-learn tensorflow tqdm stellargraph node2vec joblib seaborn chardet
+    pip install argparse numpy pandas networkx matplotlib scikit-learn tensorflow tqdm stellargraph node2vec joblib seaborn chardet tensorflow-cpu
     
 %environment
     # Set environment variables

@@ -162,6 +162,7 @@ class GraphAnalysis:
         # TRAINING
         history = model.fit(
             train_gen,
+            batch_size=1,
             epochs=epochs,
             validation_data=val_gen,
             verbose=0, 

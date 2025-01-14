@@ -162,7 +162,6 @@ class GraphAnalysis:
         # TRAINING
         history = model.fit(
             train_gen,
-            bathc_size=1,
             epochs=epochs,
             validation_data=val_gen,
             verbose=0, 
@@ -214,6 +213,7 @@ def main():
         os.environ["OMP_NUM_THREADS"] = str(args.p)
         os.environ["TF_NUM_INTEROP_THREADS"] = str(args.p)
         os.environ["TF_NUM_INTRAOP_THREADS"] = str(args.p)
+        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
     # Disable warnings
     os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'

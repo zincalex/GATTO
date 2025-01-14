@@ -21,7 +21,7 @@ DATASET = {"Cora" : datasets.Cora(), "CiteSeer" : datasets.CiteSeer(), "PubMedDi
 SKIP_TRAINING = False
 TRAIN_SPLIT = 0.7
 VAL_SPLIT = 0.1
-EPOCHS = 10000
+EPOCHS = 1000
 HIDDEN_LAYERS = 8
 ATTENTION_HEADS = 8
 
@@ -36,7 +36,7 @@ if args.d not in DATASET :
     raise ValueError(f"Invalid value for -d: {args.d}")
 if args.e not in (0, 1) :
     raise ValueError(f"Invalid value for -e: {args.e}. Expected values are 0 or 1.")
-if args.e not in (1, 10) :
+if args.i not in range(1, 11) :
     raise ValueError(f"Invalid value for -i: {args.i}. Expected values are 1 or 10.")
 
 

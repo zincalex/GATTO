@@ -28,6 +28,6 @@ def plot_and_save_confusion_matrix(y_true_labels, y_pred_labels, class_names, sa
         #plt.show()
 
 def plot_and_save_training_history(history, plot_path) : 
-    plt.plot(sg.utils.plot_history(history, return_figure=True))
+    sg.utils.plot_history(history, return_figure=True)
     plt.savefig(plot_path)
     plt.close()

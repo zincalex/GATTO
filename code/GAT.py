@@ -28,13 +28,16 @@ ATTENTION_HEADS = 8
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", type = str, help="Dataset chosen", default = 0)
 parser.add_argument("-e", type = int, help="Add extra features", default = 0)
-parser.add_argument("-p",type = int, help="Set number of processor", default = 0)
+parser.add_argument("-p", type = int, help="Set number of processor", default = 0)
+parser.add_argument("-i", type = int, help="Num of run", default = 1)
 args = parser.parse_args()
 
 if args.d not in DATASET :
     raise ValueError(f"Invalid value for -d: {args.d}")
 if args.e not in (0, 1) :
     raise ValueError(f"Invalid value for -e: {args.e}. Expected values are 0 or 1.")
+if args.e not in (1, 10) :
+    raise ValueError(f"Invalid value for -i: {args.i}. Expected values are 1 or 10.")
 
 
 
@@ -242,9 +245,15 @@ def main():
     print(f"Recall: {recall:.4f}")
     print(f"F1 Score: {f1:.4f}")
 
+    with open(f"logs/{args.d}_{args.e}_run_{args.i}.txt", "w") as f:
+        f.write(f"Accuracy: {accuracy:.4f}")
+        f.write(f"Precision: {precision:.4f}")
+        f.write(f"Recall: {recall:.4f}")
+        f.write(f"F1 Score: {f1:.4f}")
+
     # Plot and save confusion matrix
     class_names = np.unique(analyzer.labels)  # Get unique class names
-    plots.plot_and_save_confusion_matrix(y_true_labels, y_pred_labels, class_names, save_path=f"logs/{args.d}_confusion_matrix_{args.e}.png")
+    plots.plot_and_save_confusion_matrix(y_true_labels, y_pred_labels, class_names, save_path=f"logs/{args.d}_confusion_matrix_{args.e}_run_{args.i}.png")
 
 
 

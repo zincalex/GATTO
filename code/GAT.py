@@ -210,9 +210,9 @@ class GraphAnalysis:
 
 def main(): 
     if args.p > 0:
-        os.environ["OMP_NUM_THREADS"] = args.p 
-        os.environ["TF_NUM_INTEROP_THREADS"] = args.p
-        os.environ["TF_NUM_INTRAOP_THREADS"] = args.p
+        os.environ["OMP_NUM_THREADS"] = str(args.p)
+        os.environ["TF_NUM_INTEROP_THREADS"] = str(args.p)
+        os.environ["TF_NUM_INTRAOP_THREADS"] = str(args.p)
 
     # Disable warnings
     os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'

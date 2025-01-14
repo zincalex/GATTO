@@ -245,11 +245,15 @@ def main():
     print(f"Recall: {recall:.4f}")
     print(f"F1 Score: {f1:.4f}")
 
-    with open(f"logs/{args.d}_{args.e}_run_{args.i}.txt", "w") as f:
-        f.write(f"Accuracy: {accuracy:.4f}")
-        f.write(f"Precision: {precision:.4f}")
-        f.write(f"Recall: {recall:.4f}")
-        f.write(f"F1 Score: {f1:.4f}")
+    out = {
+        'Acc': [accuracy], 
+        'Prec': [precision],  
+        'Rec': [recall],      
+        'F1S': [f1]   
+    }
+
+    out = pd.DataFrame(out)
+    out.to_csv(f"logs/{args.d}_{args.e}_run_{args.i}.csv", index=False)
 
     # Plot and save confusion matrix
     class_names = np.unique(analyzer.labels)  # Get unique class names

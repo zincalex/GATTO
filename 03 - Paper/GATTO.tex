@@ -73,10 +73,13 @@ University of Padova \\
 \pagestyle{plain}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{ABSTRACT} 
-In this report we study how topological features of a node can affect its prediction on GAT (Graph Attention Network).
+\begin{abstract}
+    In this report we study how topological features of a node can affect its prediction on GAT (Graph Attention Network).
 We introduce the dataset, the type of feature we computed and we compare our result with the 
 original GAT paper.
+    
+\end{abstract}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION} 
@@ -126,9 +129,104 @@ We have two block:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{TESTS} 
+Since we want to compare the performance of GATTO with respect to GAT baseline algorithm, for each dataset, we perform 10 runs for each technique, to estimate the following parameter:
+\begin{itemize}
+    \item \textbf{Accuracy}: The proportion of correctly predicted instances (both true positives and true negatives) out of the total instances.
+    \item \textbf{Precision}: The proportion of true positive predictions out of all positive predictions. It measures exactness.
+    \item \textbf{Recall}: The proportion of true positive predictions out of all actual positive cases. It measures completeness.
+    \item \textbf{F1 Score}: The harmonic mean of precision and recall, balancing the two.
+\end{itemize}
+The algorithms have been executed on 2 different machines: \textit{CAPRI High-Performance Computing} to perform the feature matrix extraction and a general-purpose computer with \textit{Nvidia RTX 2060} to train GAT and analyze its performance.\\
+To accomplish such comparison, we utilize a set of statistical tests:
+\begin{enumerate}
+    \item Since all the scores are values in $[0,1]$, we utilize the Shapiro-Wilk Test to assert the normality of the scores.
+    \item If the test "passes", we perform:
+        \begin{itemize}
+            \item Two-Sample t-Test, with the assumption that the variances are equal
+            \item Two-Sample t-Test, with the assumption that the variances are different
+            \item Wilcoxon Signed-Rank Test
+        \end{itemize}
+    \item If the test "fails", we only utilize the Wilcoxon Signed-Rank Test, since we have hard evidence that we are not in a normal scenario. 
+\end{enumerate}
+The described tests are implemented and available on Github repository as "Results.R" file in the section "code/results".\\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{RESULTS} 
+The following tables show the averages and the variances of each score, for each algorithm, based on the test described before.
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|c|c|c|c|} 
+    \hline
+     & Accuracy & Precision & Recall & F1 Score \\ \hline
+    GAT &$0.888$ &$0.891$ &$0.888$ &$0.888$ \\ \hline
+    GATTO &$0.890$ &$0.893$ &$0.890$ &$0.890$\\ \hline
+    \end{tabular}
+    \caption{Averages of the scores for GAT and GATTO (on Cora dataset)}
+\end{table}
+
+\begin{table}[h!]
+    \centering 
+    \begin{tabular}{|l|c|c|c|c|} 
+    \hline
+     & Accuracy & Precision & Recall & F1 Score \\ \hline
+    GAT &$2.566\text{e}-5$ &$2.693\text{e}-5$ &$2.566\text{e}-5$ &$2.564\text{e}-5$ \\ \hline
+    GATTO &$1.823\text{e}-5$ &$1.611\text{e}-5$ &$1.823\text{e}-5$ &$1.837\text{e}-5$\\ \hline
+    \end{tabular}
+    \caption{Variances of the scores for GAT and GATTO (on Cora dataset)}
+\end{table}
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|c|c|c|c|} 
+    \hline
+     & Accuracy & Precision & Recall & F1 Score \\ \hline
+    GAT &$0.737$ &$0.732$ &$0.737$ &$0.731$ \\ \hline
+    GATTO &$0.736$ &$0.731$ &$0.736$ &$ 0.730$\\ \hline
+    \end{tabular}
+    \caption{Averages of the scores for GAT and GATTO (on CiteSeer dataset)}
+\end{table}
+
+\begin{table}[h!]
+    \centering 
+    \begin{tabular}{|l|c|c|c|c|} 
+    \hline
+     & Accuracy & Precision & Recall & F1 Score \\ \hline
+    GAT &$2.580\text{e}-5$ &$2.819\text{e}-5$ &$2.580\text{e}-5$ &$2.911\text{e}-5$ \\ \hline
+    GATTO &$1.011\text{e}-5$ &$9.231\text{e}-6$ &$1.011\text{e}-5$ &$9.936\text{e}-6$\\ \hline
+    \end{tabular}
+    \caption{Variances of the scores for GAT and GATTO (on CiteSeer dataset)}
+\end{table}
+
+
+From a naive prospective, it seems that GATTO works a little bit better in terms of both average values and variance values.
+However, by running the statistical tests, as explained in the test section, we obtain the tables (link to table). Since we want to bound the Type-I error $\alpha \le 0.05$ and the p-values returned by the tests, we can say that there are strong evidence that the algorithm perform equally, at least on small dataset.
+This may be due to the fact that adding a small additive "piece of information" to the node (4 features over 1447 for Cora, 4 features over 3707 for CiteSeer) doesn't change the overall perfomance of the GAT network.
+\begin{table*}[h!]
+    \centering 
+    \begin{tabular}{|l|c|c|c|} 
+    \hline
+     & 2S-T-Test (same variance) & 2S-T-Test (diff variance) & Wilcoxon-Test\\ \hline
+    Accuracy &$0.546$ &$0.546$ &$0.670$ \\ \hline
+    Precision &$0.529$ &$0.530$ &$0.570$\\ \hline
+    Recall &$0.546$ &$0.546$ &$0.670$\\ \hline
+    F1 Score &$0.524$ &$0.525$ &$0.677$\\ \hline
+    \end{tabular}
+    \caption{P-values for each test (on Cora dataset)}
+\end{table*}
+
+\begin{table*}[h!]
+    \centering 
+    \begin{tabular}{|l|c|c|c|} 
+    \hline
+     & 2S-T-Test (same variance) & 2S-T-Test (diff variance) & Wilcoxon-Test\\ \hline
+    Accuracy &$\times$ &$\times$ &$0.908$ \\ \hline
+    Precision &$0.567$ &$0.569$ &$0.969$\\ \hline
+    Recall &$\times$ &$\times$ &$0.908$\\ \hline
+    F1 Score &$0.583$ &$0.585$ &$0.969$\\ \hline
+    \end{tabular}
+    \caption{P-values for each test (on Cora dataset)}
+\end{table*}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{\fill}

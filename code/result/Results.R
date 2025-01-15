@@ -35,29 +35,40 @@ for(data in c("Cora","CiteSeer")){
         s_p_value_1 <- shapiro.test(col_1)$p.value
 
         if (s_p_value_0 >= ALPHA && s_p_value_1 >= ALPHA){
+            print("     SHAPIRO TEST PASSED -- V")
+            print("     -> ASSUMPTION: ~ N")
             #Statistically as normal
 
             tt_pval <- t.test(col_0, col_1, var.equal = TRUE)$p.value  # Equal variance assumption
             if (tt_pval >= ALPHA){
-                print(paste(col,"have same behaviour! [Xi ~ N(µ,s1) and Y i~ N(µ,s1)] -- p-value:",tt_pval))
+                print(paste("       ",col,"have same behaviour! [Xi ~ N(µ,s1) and Y i~ N(µ,s1)] -- p-value:",tt_pval))
             }else{
-                print(paste(col,"statistically significant difference! [Xi ~ N(µ,s1) and Y i~ N(µ,s1)] -- p-value: ",tt_pval))
+                print(paste("       ",col,"statistically significant difference! [Xi ~ N(µ,s1) and Y i~ N(µ,s1)] -- p-value: ",tt_pval))
             }
 
             tf_pval <- t.test(col_0, col_1, var.equal = FALSE)$p.value
             if (tf_pval >= ALPHA){
-                print(paste(col,"have same behaviour! [Xi ~ N(µ,s1) and Yi ~ N(µ,s2)] -- p-value:",tf_pval))
+                print(paste("       ",col,"have same behaviour! [Xi ~ N(µ,s1) and Yi ~ N(µ,s2)] -- p-value:",tf_pval))
             }else{
-                print(paste(col,"statistically significant difference! [Xi ~ N(µ,s1) and Yi ~ N(µ,s2)] -- p-value:",tf_pval))
+                print(paste("       ",col,"statistically significant difference! [Xi ~ N(µ,s1) and Yi ~ N(µ,s2)] -- p-value:",tf_pval))
             }
-        }else{
-            #Not statistically normal
-            print("!!! NO ~ N !!!")
+
+            print("     -> ASSUMPTION: !~ N")
             mw_pval <- wilcox.test(col_0, col_1,exact = FALSE)$p.value
             if (mw_pval >= ALPHA){
-                print(paste(col,"same behaviour! -- p-value:",mw_pval))
+                print(paste("       ",col,"same behaviour! -- p-value:",mw_pval))
             }else{
-                print(paste(col,"statistically significant difference! -- p-value:",mw_pval))
+                print(paste("       ",col,"statistically significant difference! -- p-value:",mw_pval))
+            }
+        }else{
+            print("     SHAPIRO TEST FAILED -- X")
+            #Not statistically normal
+            print("     -> ASSUMPTION: !~ N")
+            mw_pval <- wilcox.test(col_0, col_1,exact = FALSE)$p.value
+            if (mw_pval >= ALPHA){
+                print(paste("       ",col,"same behaviour! -- p-value:",mw_pval))
+            }else{
+                print(paste("       ",col,"statistically significant difference! -- p-value:",mw_pval))
             }
         }
     }

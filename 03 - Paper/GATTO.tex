@@ -199,8 +199,8 @@ The following tables show the averages and the variances of each score, for each
 
 
 From a naive prospective, it seems that GATTO works a little bit better in terms of both average values and variance values.
-However, by running the statistical tests, as explained in the test section, we obtain the tables (link to table). Since we want to bound the Type-I error $\alpha \le 0.05$ and the p-values returned by the tests, we can say that there are strong evidence that the algorithm perform equally, at least on small dataset.
-This may be due to the fact that adding a small additive "piece of information" to the node (4 features over 1447 for Cora, 4 features over 3707 for CiteSeer) doesn't change the overall perfomance of the GAT network.
+However, by running the statistical tests, as explained in the test section, we obtain the tables (link to table). Since we want to bound the Type-I error $\alpha \le 0.05$ and the p-values returned by the tests, we can say that there is no statistically evidence that the algorithm perform equally, at least on small dataset.
+This may be due to the fact that adding a small additive "piece of information" to the node (4 features over 1447 for Cora, 4 features over 3707 for CiteSeer) doesn't change the overall perfomance of the GAT network. By such considerations, we can get rid of Precomputation Module since it's computationally expensive and it doesn't provide an actual perfomance improve, even if, in absolute terms, it provides an overall $0.14-0.54\%$ boost.
 \begin{table*}[h!]
     \centering 
     \begin{tabular}{|l|c|c|c|} 

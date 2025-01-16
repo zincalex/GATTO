@@ -12,5 +12,6 @@
 code/__pycache__/*
 code/my_env
 Data
+.DS_Store
 *.json
 python3.8.10.sif

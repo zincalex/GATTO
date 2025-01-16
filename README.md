@@ -109,10 +109,6 @@ Key Finding: While GATTO shows slight improvements (0.14%-0.54%), statistical an
 
 [Full Research Paper](https://github.com/RickSrick/GATTO/blob/main/03%20-%20Paper/GATTO.pdf)
 
-## 📜 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ---
 
 <p align="center">

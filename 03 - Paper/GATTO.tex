@@ -31,6 +31,7 @@
 \usepackage{verbatim} 
 %\usepackage[noend]{algpseudocode}
 \usepackage{soul, color}
+\usepackage{dblfloatfix}
 \usepackage{lmodern}
 \usepackage[hidelinks]{hyperref}
 \usepackage{fancyhdr}
@@ -43,7 +44,6 @@
 \usepackage{makecell}
 \usepackage[sorting=none]{biblatex} % For biblatex
 \addbibresource{reference.bib} % Path to your .bib file
-
 \SetNlSty{large}{}{:}
 
 \renewcommand\theadalign{bc}
@@ -76,13 +76,13 @@ University of Padova \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-    This study introduces GATTO (Graph Attention Network with TOpological Information), a framework designed to enhance the performance of Graph Attention Networks (GAT) for node classification tasks by incorporating topological features. The research evaluates GATTO on two citation network datasets (Cora and Citeseer) by adding four topological features. While GATTO showed slight improvements in absolute performance (0.14\%-0.54\%), statistical analysis revealed no significant difference compared to standard GAT implementation. The results indicate that the additional computational cost of the topological features does not justify their inclusion for small datasets.
+    This study introduces GATTO (Graph ATtention network with TOpological information), a framework designed to enhance the performance of Graph Attention Networks (GAT) for node classification tasks by incorporating topological features. The research evaluates GATTO on two citation network datasets (Cora and Citeseer) by adding four topological features. While GATTO showed slight improvements in absolute performance (0.14\%-0.54\%), statistical analysis revealed no significant difference compared to standard GAT implementation. The results indicate that the additional computational cost of the topological features does not justify their inclusion for small datasets.
 \end{abstract}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction} 
-Node classification is a crucial research topic in graph-based learning and has significant applications in various fields, including social network analysis, recommendation systems, and biological networks. One of the most recent techniques for obtaining a high-quality node classifier is the Graph Attention Network (GAT), in which the graph's embedding is learned by considering the embeddings of neighboring nodes, scaled by learnable attention weights. By performing a transductive learning task, GAT achieves good generalization performance. However, we propose a new framework, GATTO (Graph Attention Network with TOpological Information), which aims to improve classic GAT classification by incorporating topological features derived from the graph or its embedding.
+Node classification is a crucial research topic in graph-based learning and has significant applications in various fields, including social network analysis, recommendation systems, and biological networks. One of the most recent techniques for obtaining a high-quality node classifier is the Graph Attention Network (GAT), in which the graph's embedding is learned by considering the embeddings of neighboring nodes, scaled by learnable attention weights. By performing a transductive learning task, GAT achieves good generalization performance. However, we propose a new framework, GATTO (Graph ATtention network with TOpological information), which aims to improve classic GAT classification by incorporating topological features derived from the graph or its embedding.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Data} 
@@ -95,8 +95,8 @@ The datasets used are the same as those in the GAT$^\text{\cite{GAT}}$ paper. Th
         \hline 
         \textbf{Network} & \textbf{Nodes} & \textbf{Edges} & \textbf{Labels} & \textbf{Features} \\
         \hline 
-        Cora & 2708 & 5429 & 7 & 1443 \\
-        Citeseer & 3327 & 4732 & 6 & 3703 \\
+        Cora & $2708$ & $5429$ & $7$ & $1443$ \\
+        Citeseer & $3327$ & $4732$ & $6$ & $3703$ \\
         \hline 
     \end{tabular} 
 \end{table}
@@ -127,7 +127,8 @@ Topological features can be computed by importing the dataset into a NetworkX$^{
     \item \textbf{K-Means++} if $\log_{10}{(\text{labels})} < 2$.
     \item \textbf{AgglomerativeClustering} otherwise.
 \end{itemize}
-These clustering methods are implemented using the Scikit-learn package.
+These clustering methods are implemented using the Scikit-learn$^{\text{\cite{scikitGitHub}}}$ package.
+Since the number of labels is small, in our tests, we use only the \textbf{K-Means++} clustering technique.
 Since the framework is designed to be scalable and modular, the extra features are saved into a pandas DataFrame after the feature-building phase. This allows GATTO to function as a standard GAT network if the Precomputation step is skipped.
 
 \subsection{GAT Module}
@@ -135,16 +136,16 @@ For our experiment, we use the same configuration presented in the GAT paper for
 The network consists of a two-layer GAT model. 
 \begin{enumerate}
     \item The first layer has $K = 8$ attention heads, each computing $F' = 8$ features, followed by an ELU (Exponential Linear Unit) activation.
-    \item The second layer is used for classification: a single attention head computes $C$ features (where $C$ is the number of classes), followed by a softmax activation.
+    \item The second layer is used for classification: a single attention head computes $C$ features (where $C$ is the number of labels), followed by a softmax activation.
 \end{enumerate}
 A dropout rate of $p = 0.5$ is applied to both the layers' inputs and the \textit{normalized attention coefficients}.\\
-For the loss function, we use \textit{cross-entropy loss}. \\This is implemented using the TensorFlow and StellarGraph packages.
+For the loss function, we use \textit{cross-entropy loss}. \\This is implemented using the TensorFlow$^{\text{\cite{tensorflow2015-whitepaper}}}$ and StellarGraph$^{\text{\cite{StellarGraph}}}$ packages.
 Since the input data to the GAT model is binary, we \textit{binarize} the data before training.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Performance Analysis} 
 \subsection{Experimental Setup}
-The algorithms were executed on two different machines: the \textit{CAPRI High-Performance Computing} system for feature matrix extraction and a general-purpose computer equipped with an \textit{Nvidia RTX 2060} GPU for training and tuning the GAT network. The dataset was divided such that $70\%$ was allocated for training, $10\%$ of the remaining $30\%$ was used for validation, and the rest was reserved for testing.
+The algorithms were executed on two different machines: the \textit{CAPRI High-Performance Computing}$^{\text{\cite{CAPRI}}}$ system for feature matrix extraction and a general-purpose computer equipped with an \textit{Nvidia RTX 2060} GPU for training and tuning the GAT network. The dataset was divided such that $70\%$ was allocated for training, $10\%$ of the remaining $30\%$ was used for validation, and the rest was reserved for testing.
 
 \subsection{Statistical Test}
 To compare the performance of the GATTO algorithm with the GAT baseline algorithm, we conducted $10$ runs for each technique on each dataset. The following parameters were estimated during the evaluation:
@@ -156,12 +157,12 @@ To compare the performance of the GATTO algorithm with the GAT baseline algorith
 \end{itemize}
 We employ the following statistical tests to evaluate and compare the performance of the algorithms:
 \begin{enumerate} 
-    \item Since all scores are bounded in $[0,1]$, we use the Shapiro-Wilk Test to assess the normality of the score distributions. 
+    \item Since all scores are bounded in $[0,1]$, we use the Shapiro-Wilk$^{\text{\cite{ShapiroTest}}}$ Test to assess the normality of the score distributions. 
     \item If the Shapiro-Wilk Test indicates normality, we perform: 
         \begin{itemize} 
             \item Two-Sample t-Test under the assumption of equal variances. 
             \item Two-Sample t-Test under the assumption of unequal variances. 
-            \item Wilcoxon Signed-Rank Test as a non-parametric alternative. 
+            \item Wilcoxon Signed-Rank$^{\text{\cite{WilcoxonTest}}}$ Test as a non-parametric alternative. 
         \end{itemize} 
         \item If the Shapiro-Wilk Test rejects normality, we rely solely on the Wilcoxon Signed-Rank Test, as this provides robust results in non-normal scenarios. 
 \end{enumerate}
@@ -292,17 +293,18 @@ However, several potential improvements could be explored in future work:
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\vspace{\fill}
+\clearpage
+\twocolumn
+\printbibliography
+\clearpage
+\onecolumn
 \section*{Work Report}
 In this section, we describe the distribution of the work and the detailed contributions of each member.
 \begin{itemize}
-    \item \textit{Francesco Biscaccia Carrara (2120934)}: {\textbf{40\% of the work}. Developed the code for the Precomputation Module, ran tests on CAPRI, and performed statistical tests.}
-    \item \textit{Riccardo Modolo (2123750)}: {\textbf{40\% of the work}. Developed the code to retrieve data, reviewed the code, and wrote the Proposal, Midterm, and Final Paper.}
-    \item \textit{Alessandro Viespoli (2120824)}: {\textbf{20\% of the work}. Developed the code for the GAT model and for plotting the results.}
+    \item \textit{Francesco Biscaccia Carrara (2120934)}: {\textbf{$40\%$ of the work}. Developed the code for the Precomputation Module, ran tests on CAPRI, and performed statistical tests.}
+    \item \textit{Riccardo Modolo (2123750)}: {\textbf{$40\%$ of the work}. Developed the code to retrieve data, reviewed the code, and wrote the Proposal, Midterm, and Final Paper.}
+    \item \textit{Alessandro Viespoli (2120824)}: {\textbf{$20\%$ of the work}. Developed the code for the GAT model and for plotting the results.}
     \item \textit{ChatGPT}: {Contributed to correcting grammar errors and producing the tables.}
 \end{itemize}
-\printbibliography
-\newpage
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}

@@ -3,3 +3,4 @@
 
 # Include files in the code directory
 code/* linguist-vendored=false
+code/result/* linguist-vendored=false

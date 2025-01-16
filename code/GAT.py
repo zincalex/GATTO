@@ -140,8 +140,8 @@ class GraphAnalysis:
             activations=['elu', 'softmax'],
             attn_heads=attention_heads,
             generator=generator,
-            in_dropout=0.5,
-            attn_dropout=0.5,
+            in_dropout=0.5,             #drop inner nodes on GAT
+            attn_dropout=0.5,           #drop value on attention computation
             normalize=None,
         )
         
@@ -153,14 +153,14 @@ class GraphAnalysis:
         model.compile(
             optimizer=optimizers.Adam(learning_rate=0.001),
             loss=losses.categorical_crossentropy,
-            metrics=['acc']
+            metrics=['acc']     #what i want as output of the model "acc" = accuracy
         )
         
         # Initialize Callbakcs
         if not os.path.isdir("logs"):
             os.makedirs("logs")
-        mc_callback = callbacks.ModelCheckpoint("logs/best_model.h5", monitor="val_acc", save_best_only=True, save_weights_only=True)
-        tqdm_callback = TqdmCallback()
+        #mc_callback = callbacks.ModelCheckpoint("logs/best_model.h5", monitor="val_acc", save_best_only=True, save_weights_only=True)
+        tqdm_callback = TqdmCallback()      #Keras callback for epoch and batch progress.
 
         # TRAINING
         history = model.fit(
@@ -169,7 +169,7 @@ class GraphAnalysis:
             validation_data=val_gen,
             verbose=0, 
             shuffle=False,
-            callbacks = [tqdm_callback, mc_callback]
+            callbacks = [tqdm_callback] #, mc_callback
         )
         
         plots.plot_and_save_training_history(history, f"logs/{args.d}_training_history.png")

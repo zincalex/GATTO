@@ -37,6 +37,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage{fourier} 
 \usepackage{array}
+\usepackage{subcaption}
+\usepackage{graphicx}
 \usepackage{pgf}
 \usepackage{makecell}
 \usepackage[sorting=none]{biblatex} % For biblatex
@@ -91,7 +93,7 @@ embedding. The main idea is to using topological features to imporve prediction 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{DATA} 
 We're going to use the same dataset of GAT$^\text{\cite{GAT}}$, with features to each node.
-the Dataset of GAT are: \textit{Cora and Citeseer}. Each node have only one label and the graph is mix directed/undirected
+the Dataset of GAT are: \textit{Cora and Citeseer}. Each node have only one label and the graph are both directed, unweighted and without self loop.
 \\
 \begin{table}[h!]
     \centering
@@ -120,12 +122,26 @@ We use Node2Vec$^\text{\cite{node2vec}}$ to produce the embedding, and for clust
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{IMPLEMENTATION} 
 The practical implementation$^{\text{\cite{GATTO}}}$ respect the nature of the the framework concept.
-We have two block:
+We have two blocks:
 \begin{itemize}
     \item{\textbf{Precomputation Module}: the class that compute every needed or requested features from the graph or from it's embedding, and return it as feature matrix}
     \item{\textbf{GAT Module}: the GAT implementation for train and predict node labels}
 \end{itemize}
+\subsection{Precomputational Module}
+For precomputational module, we have used the python packages: NetworkX$^{\text{\cite{SciPyProceedings_11}}}$ and Node2Vec$^{\text{\cite{n2vGitHub}}}$.
+Since the framwork is meant to be scalable after the phase of building feature, the script produce a file where computed features are stored.
+In this way GATTO can be used as normal GAT network if any feature computation are needed.
 
+\subsection{GAT Module}
+In this section we want to deep dive in how we setup the Network.
+We use the same configuration presented in the GAT paper for the \textbf{Transductive Learning}.
+Ntwork have two layer GAT model, the first one, with $K = 8$ attention heads computing $F'=8$ features each, followed by an ELU (exponential linear unit).
+The second layer is used for classification: a single attention head compute $C$ features ($C$ number of classes), followed by a softmax activation. 
+We use a dropout of $p = 0.5$ for layers' input, as well as to the \textit{normalized attention coefficients}.
+For the loss function we have used \textit{cross-entropy loss}.
+
+The data inserted inside GAT are binary value, for that reason we \textit{binarize} our data before the GAT training.
+after the training we test the GAT returning the accuracy and the confusion matrix.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{TESTS} 
@@ -201,6 +217,7 @@ The following tables show the averages and the variances of each score, for each
 From a naive prospective, it seems that GATTO works a little bit better in terms of both average values and variance values.
 However, by running the statistical tests, as explained in the test section, we obtain the tables (link to table). Since we want to bound the Type-I error $\alpha \le 0.05$ and the p-values returned by the tests, we can say that there is no statistically evidence that the algorithm perform equally, at least on small dataset.
 This may be due to the fact that adding a small additive "piece of information" to the node (4 features over 1447 for Cora, 4 features over 3707 for CiteSeer) doesn't change the overall perfomance of the GAT network. By such considerations, we can get rid of Precomputation Module since it's computationally expensive and it doesn't provide an actual perfomance improve, even if, in absolute terms, it provides an overall $0.14-0.54\%$ boost.
+
 \begin{table*}[h!]
     \centering 
     \begin{tabular}{|l|c|c|c|} 
@@ -227,6 +244,40 @@ This may be due to the fact that adding a small additive "piece of information" 
     \caption{P-values for each test (on Cora dataset)}
 \end{table*}
 
+\begin{figure*}[h!]
+    \begin{subfigure}[t]{.4\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{example-image-a}
+      \caption{\textbf{CORA}: confusion matrix without additional features}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{.4\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{example-image-b}
+      \caption{\textbf{CORA}: confusion matrix with additional features}
+    \end{subfigure}
+  
+    \medskip
+  
+    \begin{subfigure}[t]{.4\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{example-image-c}
+      \caption{\textbf{CiteSeer}: confusion matrix without additional features}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{.4\textwidth}
+      \centering
+      \includegraphics[width=\linewidth]{example-image-a}
+      \caption{\textbf{CiteSeer}: confusion matrix with additional features}
+    \end{subfigure}
+  \end{figure*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Future works}
+A lot of improvement can be done in future works. 
+First of all changing or trying other embeddings or clustering to get the best accuracy for the suggested cluster feature (not analyze in this essay for time problem).
+After that parameters can be change and add or also the GAT parameters. 
+Another point is to try this model for graphs without features, in this way we can use GAT for more general family of graphs.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{\fill}

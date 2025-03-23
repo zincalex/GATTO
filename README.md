@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="00 - readme/logo.png">
+	<img src="logo/logo.png">
 </p>
 
 # GATTO: Graph Attention Network with Topological Information 🔍

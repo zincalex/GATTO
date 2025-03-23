@@ -107,7 +107,7 @@ Key Finding: While GATTO shows slight improvements (0.14%-0.54%), statistical an
 
 ## 📚 References
 
-[Full Research Paper](https://github.com/RickSrick/GATTO/blob/main/03%20-%20Paper/GATTO.pdf)
+[Full Research Paper](https://github.com/zincalex/GATTO/blob/main/GATTO.pdf)
 
 ---
 
